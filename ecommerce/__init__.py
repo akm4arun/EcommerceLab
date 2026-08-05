@@ -1,11 +1,12 @@
 from flask import Flask
 
+from ecommerce.routes.home import home_bp
+
 
 def create_app():
+
     app = Flask(__name__)
 
-    @app.route("/")
-    def home():
-        return "Welcome to EcommerceLab!"
+    app.register_blueprint(home_bp)
 
     return app
