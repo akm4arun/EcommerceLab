@@ -23,7 +23,7 @@ from config import Config
 
 from ecommerce.extensions import db
 from ecommerce.routes.home import home_bp
-
+from ecommerce.models import Product
 
 def create_app():
 
@@ -31,7 +31,11 @@ def create_app():
 
     app.config.from_object(Config)
 
+    print(app.config["SQLALCHEMY_DATABASE_URI"])
+
     db.init_app(app)
+    with app.app_context():
+        db.create_all()
 
     app.register_blueprint(home_bp)
 
