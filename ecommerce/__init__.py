@@ -26,6 +26,7 @@ from ecommerce.routes.home import home_bp
 from ecommerce.models import Product
 from ecommerce.services.product_service import seed_products
 from ecommerce.routes.products import products_bp
+from ecommerce.routes.auth import auth_bp
 
 def create_app():
 
@@ -42,5 +43,6 @@ def create_app():
 
     app.register_blueprint(home_bp)
     app.register_blueprint(products_bp)
+    app.register_blueprint(auth_bp)
 
     return app
