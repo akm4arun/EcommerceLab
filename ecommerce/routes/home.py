@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template
+from flask import session
 
 home_bp = Blueprint("home", __name__)
 
 @home_bp.route("/")
 def home():
+    print(session)
     return render_template("index.html")
 
 # from flask import Blueprint, current_app, render_template

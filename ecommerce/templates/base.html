@@ -27,7 +27,7 @@
     <div class="container">
 
         <a class="navbar-brand"
-           href="/">
+           href="{{ url_for('home.home') }}">
 
             🛒 {{ config.APP_NAME }}
 
@@ -51,7 +51,7 @@
                 <li class="nav-item">
 
                     <a class="nav-link"
-                       href="/">
+                       href="{{ url_for('home.home') }}">
 
                         Home
 
@@ -81,14 +81,54 @@
 
                 </li>
 
+                <{% if session.get("user_id") %}
+
+                <li class="nav-item">
+
+                    <span class="nav-link">
+
+                        👋 {{ session["user_name"] }}
+
+                    </span>
+
+                </li>
+
                 <li class="nav-item">
 
                     <a class="nav-link"
-                        href="{{ url_for('auth.register') }}">
-                            Register
+                    href="{{ url_for('auth.logout') }}">
+
+                        Logout
+
                     </a>
 
                 </li>
+
+                {% else %}
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                    href="{{ url_for('auth.register') }}">
+
+                        Register
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                    href="{{ url_for('auth.login') }}">
+
+                        Login
+
+                    </a>
+
+                </li>
+
+                {% endif %}
 
             </ul>
 
@@ -98,7 +138,7 @@
 
 </nav>
 
-<div class="container mt-5">
+
 <div class="container mt-3">
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -124,6 +164,7 @@
     {% endwith %}
 
 </div>
+<div class="container mt-5"></div>
     {% block content %}
 
     {% endblock %}
