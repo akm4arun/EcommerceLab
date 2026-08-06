@@ -8,6 +8,7 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
+    stock = db.Column(db.Integer, nullable=False, default=0)
 
     def __repr__(self):
         return f"<Product {self.name}>"

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}
+Products
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">
+        Products
+    </h2>
+
+    <div class="row">
+
+        {% for product in products %}
+
+        <div class="col-md-4 mb-4">
+
+            <div class="card h-100">
+
+                <div class="card-body">
+
+                    <h4>{{ product.name }}</h4>
+
+                    <p>{{ product.description }}</p>
+
+                    <h5>₹{{ "{:,.0f}".format(product.price) }}</h5>
+
+                    <span class="badge bg-success">
+
+                        Stock: {{ product.stock }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}
