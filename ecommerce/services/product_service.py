@@ -40,3 +40,6 @@ def seed_products():
 
 def get_all_products():
     return Product.query.order_by(Product.id).all()
+
+def get_product(product_id):
+    return Product.query.get_or_404(product_id)
