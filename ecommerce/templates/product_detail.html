@@ -38,11 +38,19 @@
 
             </p>
 
-            <button class="btn btn-success">
+            <form
+                method="POST"
+                action="{{ url_for('cart.add_product', product_id=product.id) }}">
 
-                Add to Cart
+                <button
+                    class="btn btn-success"
+                    type="submit">
 
-            </button>
+                    🛒 Add to Cart
+
+                </button>
+
+            </form>
 
         </div>
 

@@ -1,19 +1,26 @@
 from ecommerce.extensions import db
 
+
 class Cart(db.Model):
-    __tablename__ = 'carts'
+    __tablename__ = "carts"
 
     id = db.Column(db.Integer, primary_key=True)
 
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
     product_id = db.Column(
-        db.Integer, 
-        db.ForeignKey('products.id'), 
+        db.Integer,
+        db.ForeignKey("products.id"),
         nullable=False
     )
 
     quantity = db.Column(
-        db.Integer, 
-        nullable=False, 
+        db.Integer,
+        nullable=False,
         default=1
     )
 
@@ -22,5 +29,10 @@ class Cart(db.Model):
         backref="cart_items"
     )
 
+    user = db.relationship(
+        "User",
+        backref="cart_items"
+    )
+
     def __repr__(self):
-        return f"<Cart {self.product_id}>"
+        return f"<Cart User:{self.user_id} Product:{self.product_id}>"
