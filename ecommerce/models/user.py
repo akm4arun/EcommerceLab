@@ -25,5 +25,11 @@ class User(db.Model):
         nullable=False
     )
 
+    role = db.Column(
+        db.String(20),
+        nullable=False,
+        default="customer"
+    )
+
     def __repr__(self):
         return f"<User {self.email}>"

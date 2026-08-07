@@ -79,6 +79,17 @@ Cart
 
     </div>
 
+    <div class="text-end mt-3">
+
+        <a
+            href="{{ url_for('orders.place_order') }}"
+            class="btn btn-success btn-lg"
+        >
+            Checkout
+        </a>
+
+    </div>
+
 {% else %}
 
 <p>Your cart is currently empty.</p>
