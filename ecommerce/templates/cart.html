@@ -34,7 +34,27 @@ Cart
                     ₹{{ "{:,.0f}".format(item.product.price) }}
                 </td>
 
-                <td>{{ item.quantity }}</td>
+                <td>
+
+                    <a
+                        class="btn btn-outline-danger btn-sm"
+                        href="{{ url_for('cart.decrease', cart_id=item.id) }}"
+                    >
+                        -
+                    </a>
+
+                    <span class="mx-2">
+                        {{ item.quantity }}
+                    </span>
+
+                    <a
+                        class="btn btn-outline-success btn-sm"
+                        href="{{ url_for('cart.increase', cart_id=item.id) }}"
+                    >
+                        +
+                    </a>
+
+                </td>
 
                 <td>
                     ₹{{ "{:,.0f}".format(item.product.price * item.quantity) }}

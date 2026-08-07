@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, session, redirect, url_for
 
 from ecommerce.decorators.auth import login_required
-from ecommerce.services.cart_service import add_to_cart, get_cart_items
-
+from ecommerce.services.cart_service import add_to_cart, get_cart_items, increase_quantity
+from ecommerce.services.cart_service import increase_quantity, decrease_quantity
 
 cart_bp = Blueprint(
     "cart",
@@ -46,5 +46,21 @@ def add_product(product_id):
         user_id=user_id,
         product_id=product_id
     )
+
+    return redirect(url_for("cart.cart"))
+
+@cart_bp.route("/increase/<int:cart_id>")
+@login_required
+def increase(cart_id):
+
+    increase_quantity(cart_id)
+
+    return redirect(url_for("cart.cart"))
+
+@cart_bp.route("/decrease/<int:cart_id>")
+@login_required
+def decrease(cart_id):
+
+    decrease_quantity(cart_id)
 
     return redirect(url_for("cart.cart"))
