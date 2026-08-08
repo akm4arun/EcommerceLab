@@ -2,21 +2,29 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 
-# Virtual Environment
+# Virtual environment
 .venv/
-
-# Environment variables
-.env
+venv/
+env/
 
 # Flask instance folder
 instance/
 
-# VS Code
+# Environment variables
+.env
+
+# Uploaded files
+ecommerce/static/uploads/
+
+# IDE files
 .vscode/
+.idea/
 
-# macOS
+# OS files
 .DS_Store
-
-# Windows
 Thumbs.db
+
+# Logs
+*.log
