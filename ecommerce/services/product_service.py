@@ -39,14 +39,33 @@ def seed_products():
     db.session.add_all(products)
     db.session.commit()
 
-def get_all_products(search=None):
+def get_all_products(search=None, sort="name_asc", page=1, per_page=3):
 
     query = Product.query.filter_by(is_active=True)
 
+    # Search
     if search:
         query = query.filter(Product.name.ilike(f"%{search}%"))
 
-    return query.order_by(Product.id).all()
+    # Sorting
+    if sort == "name_desc":
+        query = query.order_by(Product.name.desc())
+
+    elif sort == "price_asc":
+        query = query.order_by(Product.price.asc())
+
+    elif sort == "price_desc":
+        query = query.order_by(Product.price.desc())
+
+    else:
+        query = query.order_by(Product.name.asc())
+
+    # Pagination
+    return query.paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
 
 
 def get_product(product_id):

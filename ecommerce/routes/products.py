@@ -18,12 +18,23 @@ def product_list():
 
     search = request.args.get("q", "").strip()
 
-    products = get_all_products(search=search)
+    sort = request.args.get("sort", "name_asc")
+
+    page = request.args.get("page", 1, type=int)
+
+    pagination = get_all_products(
+        search=search,
+        sort=sort,
+        page=page,
+        per_page=3
+    )
 
     return render_template(
         "products.html",
-        products=products,
-        search=search
+        products=pagination.items,
+        pagination=pagination,
+        search=search,
+        sort=sort
     )
 
 @products_bp.route("/<int:product_id>")
