@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}
+My Orders
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+
+<h2 class="mb-4">
+    My Orders
+</h2>
+
+{% if orders %}
+
+<div class="table-responsive">
+
+    <table class="table table-bordered align-middle">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Order #</th>
+
+                <th>Date</th>
+
+                <th>Total</th>
+
+                <th>Status</th>
+
+                <th>Items</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for order in orders %}
+
+            <tr>
+
+                <td>{{ order.id }}</td>
+
+                <td>{{ order.created_at.strftime('%d-%b-%Y') }}</td>
+
+                <td>₹{{ '{:,.0f}'.format(order.total_amount) }}</td>
+
+                <td>
+
+                    {% if order.status == 'Pending' %}
+                        <span class="badge bg-secondary">Pending</span>
+                    {% elif order.status == 'Processing' %}
+                        <span class="badge bg-info text-dark">Processing</span>
+                    {% elif order.status == 'Shipped' %}
+                        <span class="badge bg-primary">Shipped</span>
+                    {% elif order.status == 'Delivered' %}
+                        <span class="badge bg-success">Delivered</span>
+                    {% elif order.status == 'Cancelled' %}
+                        <span class="badge bg-danger">Cancelled</span>
+                    {% else %}
+                        <span class="badge bg-dark">{{ order.status }}</span>
+                    {% endif %}
+
+                </td>
+
+                <td>{{ order.items|length }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-info">
+    You have not placed any orders yet.
+</div>
+
+{% endif %}
+
+
+</div>
+
+{% endblock %}

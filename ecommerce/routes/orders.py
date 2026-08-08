@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, url_for, flash, session, render_template
 
 from ecommerce.decorators.auth import login_required
-from ecommerce.services.order_service import checkout
+from ecommerce.services.order_service import checkout, get_user_orders
 
 orders_bp = Blueprint(
     "orders",
@@ -35,6 +35,18 @@ def place_order():
     return redirect(
         url_for("cart.cart")
     )
+
+@orders_bp.route("/my-orders")
+@login_required
+def my_orders():
+
+    orders = get_user_orders(session["user_id"])
+
+    return render_template(
+        "my_orders.html",
+        orders=orders
+    )
+
 @orders_bp.route("/success/<int:order_id>")
 @login_required
 def order_success(order_id):

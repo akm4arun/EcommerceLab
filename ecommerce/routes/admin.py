@@ -301,14 +301,14 @@ def orders():
         orders=orders
     )
 
-print("Before order_detail")
+# print("Before order_detail")
 
 @admin_bp.route("/orders/<int:order_id>")
 @login_required
 @admin_required
 def order_detail(order_id):
 
-    print("Inside order_detail definition")
+    # print("Inside order_detail definition")
 
     order = Order.query.get_or_404(order_id)
 
@@ -317,4 +317,32 @@ def order_detail(order_id):
         order=order
     )
 
-print(">>> admin.py loaded completely")
+# print(">>> admin.py loaded completely")
+
+@admin_bp.route("/orders/<int:order_id>/status", methods=["POST"])
+@login_required
+@admin_required
+def update_order_status(order_id):
+
+    order = Order.query.get_or_404(order_id)
+
+    new_status = request.form["status"]
+
+    allowed_statuses = [
+        "Pending",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled"
+    ]
+
+    if new_status not in allowed_statuses:
+        flash("Invalid order status.", "danger")
+        return redirect(url_for("admin.order_detail", order_id=order.id))
+
+    order.status = new_status
+    db.session.commit()
+
+    flash("Order status updated successfully.", "success")
+
+    return redirect(url_for("admin.order_detail", order_id=order.id))

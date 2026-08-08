@@ -32,17 +32,47 @@ Order Details
 
             </p>
 
-            <p>
+            <div class="mb-3">
+                <strong>Current Status:</strong>
 
-                <strong>Status:</strong>
+                {% if order.status == "Pending" %}
+                    <span class="badge bg-secondary">{{ order.status }}</span>
+                {% elif order.status == "Processing" %}
+                    <span class="badge bg-info text-dark">{{ order.status }}</span>
+                {% elif order.status == "Shipped" %}
+                    <span class="badge bg-primary">{{ order.status }}</span>
+                {% elif order.status == "Delivered" %}
+                    <span class="badge bg-success">{{ order.status }}</span>
+                {% elif order.status == "Cancelled" %}
+                    <span class="badge bg-danger">{{ order.status }}</span>
+                {% else %}
+                    <span class="badge bg-dark">{{ order.status }}</span>
+                {% endif %}
+            </div>
 
-                <span class="badge bg-primary">
+            <form method="POST"
+                action="{{ url_for('admin.update_order_status', order_id=order.id) }}"
+                class="row g-2 align-items-end mb-3">
 
-                    {{ order.status }}
+                <div class="col-md-4">
+                    <label class="form-label">Change Status</label>
 
-                </span>
+                    <select name="status" class="form-select">
+                        {% for status in ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"] %}
+                            <option value="{{ status }}"
+                                    {% if order.status == status %}selected{% endif %}>
+                                {{ status }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            </p>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        Update Status
+                    </button>
+                </div>
+            </form>
 
             <p>
 
