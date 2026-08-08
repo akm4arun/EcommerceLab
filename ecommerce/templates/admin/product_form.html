@@ -24,7 +24,7 @@ Add Product
 
     <hr>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
 
         <div class="mb-3">
 
@@ -36,7 +36,7 @@ Add Product
                 type="text"
                 class="form-control"
                 name="name"
-                value="{{ product.name if edit else '' }}"
+                value="{{ product.name if product else '' }}"
                 required>
 
         </div>
@@ -50,7 +50,7 @@ Add Product
             <textarea
                 class="form-control"
                 rows="4"
-                name="description">{{ product.description if edit else '' }}</textarea>
+                name="description">{{ product.description if product else '' }}</textarea>
 
         </div>
 
@@ -65,7 +65,7 @@ Add Product
                 step="0.01"
                 class="form-control"
                 name="price"
-                value="{{ product.price if edit else '' }}"
+                value="{{ product.price if product else '' }}"
                 required>
 
         </div>
@@ -80,22 +80,40 @@ Add Product
                 type="number"
                 class="form-control"
                 name="stock"
-                value="{{ product.stock if edit else '' }}"
+                value="{{ product.stock if product else '' }}"
                 required>
 
         </div>
+        {% if edit and product.image_url %}
 
         <div class="mb-3">
 
             <label class="form-label">
-                Image URL
+                Current Image
+            </label>
+
+            <br>
+
+            <img
+                src="{{ url_for('static',
+                                filename='uploads/' + product.image_url) }}"
+                class="img-thumbnail"
+                style="max-width:200px;">
+
+        </div>
+
+        {% endif %}
+        <div class="mb-3">
+
+            <label class="form-label">
+                Product Image
             </label>
 
             <input
-                type="text"
+                type="file"
                 class="form-control"
-                name="image_url"
-                value="{{ product.image_url if edit else '' }}">
+                name="image"
+                accept="image/*">
 
         </div>
 

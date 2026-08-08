@@ -1,5 +1,6 @@
 from ecommerce.extensions import db
 from ecommerce.models import Product
+from flask import abort
 
 
 def seed_products():
@@ -39,7 +40,21 @@ def seed_products():
     db.session.commit()
 
 def get_all_products():
-    return Product.query.order_by(Product.id).all()
+    return (
+        Product.query
+        .filter_by(is_active=True)
+        .order_by(Product.id)
+        .all()
+    )
 
 def get_product(product_id):
-    return Product.query.get_or_404(product_id)
+
+    product = Product.query.filter_by(
+        id=product_id,
+        is_active=True
+    ).first()
+
+    if not product:
+        abort(404)
+
+    return product

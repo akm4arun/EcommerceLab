@@ -9,6 +9,8 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
     stock = db.Column(db.Integer, nullable=False, default=0)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    order_items = db.relationship("OrderItem", back_populates="product")
 
     def __repr__(self):
         return f"<Product {self.name}>"

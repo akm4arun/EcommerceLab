@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}
+Order Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>
+        Order #{{ order.id }}
+    </h2>
+
+    <hr>
+
+    <div class="card mb-4">
+
+        <div class="card-body">
+
+            <h5>Customer</h5>
+
+            <p>
+
+                <strong>Name:</strong>
+                {{ order.user.name }}
+
+                <br>
+
+                <strong>Email:</strong>
+                {{ order.user.email }}
+
+            </p>
+
+            <p>
+
+                <strong>Status:</strong>
+
+                <span class="badge bg-primary">
+
+                    {{ order.status }}
+
+                </span>
+
+            </p>
+
+            <p>
+
+                <strong>Date:</strong>
+
+                {{ order.created_at.strftime("%d %b %Y %I:%M %p") }}
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <table class="table table-bordered">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Product</th>
+
+                <th>Price</th>
+
+                <th>Qty</th>
+
+                <th>Total</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for item in order.items %}
+
+            <tr>
+
+                <td>{{ item.product.name }}</td>
+
+                <td>₹{{ "{:,.0f}".format(item.unit_price) }}</td>
+
+                <td>{{ item.quantity }}</td>
+
+                <td>
+
+                    ₹{{ "{:,.0f}".format(item.unit_price * item.quantity) }}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <div class="text-end">
+
+        <h4>
+
+            Grand Total :
+
+            ₹{{ "{:,.0f}".format(order.total_amount) }}
+
+        </h4>
+
+    </div>
+
+    <a
+        href="{{ url_for('admin.orders') }}"
+        class="btn btn-secondary">
+
+        Back
+
+    </a>
+
+</div>
+
+{% endblock %}

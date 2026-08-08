@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}
+Manage Users
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>Manage Users</h2>
+
+    <hr>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for user in users %}
+
+            <tr>
+
+                <td>{{ user.id }}</td>
+
+                <td>{{ user.name }}</td>
+
+                <td>{{ user.email }}</td>
+
+                <td>
+
+                    {% if user.role == "admin" %}
+
+                        <span class="badge bg-danger">
+                            Admin
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-primary">
+                            Customer
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if user.role == "customer" %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('admin.promote_user', user_id=user.id) }}"
+                        style="display:inline;">
+
+                        <button
+                            class="btn btn-success btn-sm">
+
+                            Promote
+
+                        </button>
+
+                    </form>
+
+                    {% else %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('admin.demote_user', user_id=user.id) }}"
+                        style="display:inline;">
+
+                        <button
+                            class="btn btn-warning btn-sm">
+
+                            Demote
+
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -15,3 +15,4 @@ class Config:
     # SQLALCHEMY_DATABASE_URI = "sqlite:///database/ecommerce.db"
     SQLALCHEMY_DATABASE_URI = (f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'ecommerce.db')}")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, "ecommerce", "static", "uploads")

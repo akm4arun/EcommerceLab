@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, url_for, flash, session
+from flask import Blueprint, redirect, url_for, flash, session, render_template
 
 from ecommerce.decorators.auth import login_required
 from ecommerce.services.order_service import checkout
@@ -14,20 +14,32 @@ orders_bp = Blueprint(
 @login_required
 def place_order():
 
-    success = checkout(session["user_id"])
+    order = checkout(session["user_id"])
 
-    if success:
+    if order:
 
         flash(
-            "Order placed successfully!",
+            f"Order #{order.id} placed successfully!",
             "success"
         )
 
-    else:
-
-        flash(
-            "Your cart is empty.",
-            "warning"
+        return redirect(
+            url_for("orders.order_success", order_id=order.id)
         )
 
-    return redirect(url_for("cart.cart"))
+    flash(
+        "Unable to place order. Your cart may be empty or stock is insufficient.",
+        "warning"
+    )
+
+    return redirect(
+        url_for("cart.cart")
+    )
+@orders_bp.route("/success/<int:order_id>")
+@login_required
+def order_success(order_id):
+
+    return render_template(
+        "order_success.html",
+        order_id=order_id
+    )
