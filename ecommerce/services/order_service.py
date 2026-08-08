@@ -57,3 +57,12 @@ def get_all_orders():
         .order_by(Order.created_at.desc())
         .all()
     )
+
+def get_user_orders(user_id):
+
+    return (
+        Order.query
+        .filter_by(user_id=user_id)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
