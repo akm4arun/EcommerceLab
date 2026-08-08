@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 
 # from ecommerce.services.product_service import get_all_products
 from ecommerce.services.product_service import (
@@ -16,11 +16,14 @@ products_bp = Blueprint(
 @products_bp.route("/")
 def product_list():
 
-    products = get_all_products()
+    search = request.args.get("q", "").strip()
+
+    products = get_all_products(search=search)
 
     return render_template(
         "products.html",
-        products=products
+        products=products,
+        search=search
     )
 
 @products_bp.route("/<int:product_id>")
