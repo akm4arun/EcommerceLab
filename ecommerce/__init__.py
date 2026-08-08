@@ -31,11 +31,15 @@ from ecommerce.routes.cart import cart_bp
 from ecommerce.routes.orders import orders_bp
 from ecommerce.routes.admin import admin_bp
 
-def create_app():
-
+def create_app(config_class=Config):
     app = Flask(__name__)
 
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
+
+    # existing extension initialization here
+    # db.init_app(app)
+    # migrate.init_app(app, db)
+    # register blueprints, etc.
 
     print(app.config["SQLALCHEMY_DATABASE_URI"])
 

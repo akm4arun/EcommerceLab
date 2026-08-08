@@ -7,12 +7,45 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY")
-    APP_NAME = os.getenv("APP_NAME")
-    APP_VERSION = os.getenv("APP_VERSION")
-    FLASK_ENV = os.getenv("FLASK_ENV")
+    APP_NAME = os.getenv("APP_NAME", "EcommerceLab")
+    APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
 
-    # SQLALCHEMY_DATABASE_URI = "sqlite:///database/ecommerce.db"
-    SQLALCHEMY_DATABASE_URI = (f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'ecommerce.db')}")
+    SECRET_KEY = os.getenv(
+        "SECRET_KEY",
+        "dev-secret-key-change-in-production"
+    )
+
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URL",
+        f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'ecommerce.db')}"
+    )
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, "ecommerce", "static", "uploads")
+
+    UPLOAD_FOLDER = os.path.join(
+        BASE_DIR,
+        "ecommerce",
+        "static",
+        "uploads"
+    )
+
+    DEBUG = False
+
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+
+
+class ProductionConfig(Config):
+    DEBUG = False
+
+
+config_by_name = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+}
+
+
+def get_config():
+    env = os.getenv("FLASK_ENV", "development")
+    return config_by_name.get(env, DevelopmentConfig)
