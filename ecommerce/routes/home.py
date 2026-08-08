@@ -8,6 +8,10 @@ def home():
     print(session)
     return render_template("index.html")
 
+@home_bp.route("/health")
+def health():
+    return {"status": "ok"}, 200
+
 # from flask import Blueprint, current_app, render_template
 
 # home_bp = Blueprint("home", __name__)
