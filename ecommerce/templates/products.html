@@ -12,6 +12,37 @@ Products
         Products
     </h2>
 
+    <form method="GET" class="row mb-4">
+
+        <div class="col-md-8">
+
+            <input
+                type="text"
+                name="q"
+                value="{{ search }}"
+                class="form-control"
+                placeholder="Search products...">
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button type="submit" class="btn btn-primary w-100">
+                Search
+            </button>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <a href="{{ url_for('products.product_list') }}"
+            class="btn btn-secondary w-100">
+                Reset
+            </a>
+
+        </div>
+
+    </form>
     <div class="row">
 
         {% for product in products %}

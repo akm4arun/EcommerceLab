@@ -39,13 +39,15 @@ def seed_products():
     db.session.add_all(products)
     db.session.commit()
 
-def get_all_products():
-    return (
-        Product.query
-        .filter_by(is_active=True)
-        .order_by(Product.id)
-        .all()
-    )
+def get_all_products(search=None):
+
+    query = Product.query.filter_by(is_active=True)
+
+    if search:
+        query = query.filter(Product.name.ilike(f"%{search}%"))
+
+    return query.order_by(Product.id).all()
+
 
 def get_product(product_id):
 
