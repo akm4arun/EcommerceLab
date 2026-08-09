@@ -105,3 +105,6 @@ git merge --no-ff feature/new-feature
 ## License
 
 Learning project for DevOps and Azure deployment practice.
+
+
+## GitHub Actions deployment test
