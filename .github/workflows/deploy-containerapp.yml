@@ -1,0 +1,46 @@
+name: Build and Deploy to Azure Container Apps
+
+on:
+push:
+branches:
+- main
+
+env:
+IMAGE_NAME: ecommercelab
+
+jobs:
+build-and-deploy:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
+
+  - name: Login to Azure
+    uses: azure/login@v2
+    with:
+      creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  - name: Login to Azure Container Registry
+    uses: docker/login-action@v3
+    with:
+      registry: ${{ secrets.ACR_LOGIN_SERVER }}
+      username: ${{ secrets.ACR_USERNAME }}
+      password: ${{ secrets.ACR_PASSWORD }}
+
+  - name: Build Docker image
+    run: |
+      docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+  - name: Push Docker image
+    run: |
+      docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  - name: Deploy to Azure Container App
+    uses: azure/container-apps-deploy-action@v1
+    with:
+      resourceGroup: rg-ecommercelab-dev
+      containerAppName: ecommercelab-app
+      imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+```
