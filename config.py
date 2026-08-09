@@ -15,10 +15,12 @@ class Config:
         "dev-secret-key-change-in-production"
     )
 
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        "sqlite:////tmp/ecommerce.db"
-    )
+    if os.getenv("DATABASE_URL"):
+        SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
+    else:
+        SQLALCHEMY_DATABASE_URI = (
+            f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'ecommerce.db')}"
+        )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
