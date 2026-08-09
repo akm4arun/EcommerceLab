@@ -1,29 +1,176 @@
-{% extends "base.html" %}
-
-{% block title %}
-Home
-{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
 
-<div class="text-center">
+<div class="container-fluid px-0">
 
-    <h1 class="display-4">
+    <!-- Hero Banner -->
+    <div class="bg-primary text-white rounded-3 p-5 mb-4"
+         style="background: linear-gradient(90deg,#0f172a,#1e3a8a);">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4 fw-bold">EcommerceLab Store</h1>
+                <p class="lead">
+                    Shop electronics, accessories and daily essentials.
+                </p>
+                <a href="{{ url_for('products.product_list') }}"
+                   class="btn btn-warning btn-lg">
+                    Browse Products
+                </a>
+            </div>
 
-        Welcome to {{ config.APP_NAME }}
+            <div class="col-md-6 text-center mt-4 mt-md-0">
+                <img src="{{ url_for('static', filename=app_config['HERO_BANNER']) }}"
+                     class="img-fluid rounded shadow"
+                     style="max-height:320px;max-width:720px;"
+                     alt="Ecommerce Banner">
+            </div>
+        </div>
+    </div>
 
-    </h1>
+    <!-- Categories -->
+    <div class="row g-4 mb-5">
 
-    <p class="lead">
+    <!-- Electronics -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Electronics</h5>
+            <img src="{{ url_for('static', filename='uploads/Electronics_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Electronics">
+            <p class="small mt-3 mb-0">Laptops, gadgets and accessories</p>
+            </div>
+        </div>
+        </a>
+    </div>
 
-        Build with Flask, Bootstrap and Azure
+    <!-- Gaming -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Gaming</h5>
+            <img src="{{ url_for('static', filename='uploads/Gaming_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Gaming">
+            <p class="small mt-3 mb-0">Gaming laptops and accessories</p>
+            </div>
+        </div>
+        </a>
+    </div>
 
-    </p>
+    <!-- Mobiles -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Mobiles</h5>
+            <img src="{{ url_for('static', filename='uploads/Mobiles_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Mobiles">
+            <p class="small mt-3 mb-0">Smartphones and accessories</p>
+            </div>
+        </div>
+        </a>
+    </div>
 
-    <a href="{{ url_for('products.product_list') }}"
-    class="btn btn-primary btn-lg">
-        Browse Products
-    </a>
+    <!-- Fashion -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Fashion</h5>
+            <img src="{{ url_for('static', filename='uploads/Fashion_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Fashion">
+            <p class="small mt-3 mb-0">Clothing, shoes and watches</p>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    <!-- Home & Kitchen -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Home & Kitchen</h5>
+            <img src="{{ url_for('static', filename='uploads/Home&Kichen_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Home and Kitchen">
+            <p class="small mt-3 mb-0">Appliances and cookware</p>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    <!-- Accessories -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Accessories</h5>
+            <img src="{{ url_for('static', filename='uploads/Accessories_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Accessories">
+            <p class="small mt-3 mb-0">Cables, chargers and gadgets</p>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    <!-- Books -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Books</h5>
+            <img src="{{ url_for('static', filename='uploads/Books_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Books">
+            <p class="small mt-3 mb-0">Learning and entertainment</p>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    <!-- Sports -->
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+            <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Sports & Fitness</h5>
+            <img src="{{ url_for('static', filename='uploads/Sorts&Fitness.jpg') }}"
+                class="img-fluid rounded category-img" alt="Sports and Fitness">
+            <p class="small mt-3 mb-0">Fitness gear and sports items</p>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    </div>
+
+    <!-- Bottom CTA Section -->
+    <div class="row g-4 mb-5">
+
+        <div class="col-md-6">
+            <div class="p-4 border rounded-3 h-100 bg-light shadow-sm">
+                <h3 class="fw-bold">Continue Shopping</h3>
+                <p>Discover newly added products and limited-time offers.</p>
+                <a href="{{ url_for('products.product_list') }}"
+                   class="btn btn-outline-primary">
+                    View Products
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="p-4 border rounded-3 h-100 bg-light shadow-sm">
+                <h3 class="fw-bold">Join EcommerceLab</h3>
+                <p>Create an account to save your cart and track orders.</p>
+                <a href="{{ url_for('auth.register') }}"
+                   class="btn btn-primary">
+                    Sign Up
+                </a>
+            </div>
+        </div>
+
+    </div>
 
 </div>
 

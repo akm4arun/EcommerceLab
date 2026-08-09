@@ -9,5 +9,10 @@ from config import get_config
 
 app = create_app(get_config())
 
-if __name__ == "__main__":
+# Register app config for templates BEFORE app.run()
+@app.context_processor
+def inject_config():
+    return dict(app_config=app.config)
+
+if __name__ == '__main__':
     app.run()

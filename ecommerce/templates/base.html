@@ -18,6 +18,28 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
 
+    <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet">
+
+    <style>
+        .category-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 14px;
+        }
+
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,.12) !important;
+        }
+
+        .category-img {
+            height: 150px;
+            width: 100%;
+            object-fit: contain;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -132,7 +154,7 @@
                     <a class="nav-link"
                     href="{{ url_for('auth.register') }}">
 
-                        Register
+                        Sign Up
 
                     </a>
 

@@ -31,6 +31,7 @@ class Config:
 
     DEBUG = False
 
+    HERO_BANNER = 'uploads/home-banner.jpg'
 
 class DevelopmentConfig(Config):
     DEBUG = True
