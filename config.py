@@ -17,7 +17,7 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
-        f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'ecommerce.db')}"
+        "sqlite:////tmp/ecommerce.db"
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -31,7 +31,7 @@ class Config:
 
     DEBUG = False
 
-    HERO_BANNER = 'uploads/home-banner.jpg'
+    HERO_BANNER = 'assets/hero/home-banner.jpg'
 
 class DevelopmentConfig(Config):
     DEBUG = True
