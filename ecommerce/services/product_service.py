@@ -1,71 +1,31 @@
-from ecommerce.extensions import db
 from ecommerce.models import Product
 from flask import abort
 
 
-def seed_products():
-
-    if Product.query.count() > 0:
-        return
-
-    products = [
-
-        Product(
-            name="Gaming Laptop",
-            description="Intel i7, 16GB RAM, 1TB SSD",
-            price=99999,
-            image_url="laptop.jpg",
-            stock=5
-        ),
-
-        Product(
-            name="Wireless Mouse",
-            description="Bluetooth Mouse",
-            price=1499,
-            image_url="mouse.jpg",
-            stock=30
-        ),
-
-        Product(
-            name="Mechanical Keyboard",
-            description="RGB Keyboard",
-            price=3999,
-            image_url="keyboard.jpg",
-            stock=12
-        )
-
-    ]
-
-    db.session.add_all(products)
-    db.session.commit()
-
-def get_all_products(search=None, sort="name_asc", page=1, per_page=3):
+def get_all_products(search=None, sort="name_asc", page=1, per_page=12, category=None):
 
     query = Product.query.filter_by(is_active=True)
 
-    # Search
+    # Filter by category if provided
+    if category:
+        query = query.filter(Product.category == category)
+
+    # Search by product name
     if search:
         query = query.filter(Product.name.ilike(f"%{search}%"))
 
     # Sorting
     if sort == "name_desc":
         query = query.order_by(Product.name.desc())
-
     elif sort == "price_asc":
         query = query.order_by(Product.price.asc())
-
     elif sort == "price_desc":
         query = query.order_by(Product.price.desc())
-
     else:
         query = query.order_by(Product.name.asc())
 
-    # Pagination
-    return query.paginate(
-        page=page,
-        per_page=per_page,
-        error_out=False
-    )
+    # Return paginated results
+    return query.paginate(page=page, per_page=per_page, error_out=False)
 
 
 def get_product(product_id):

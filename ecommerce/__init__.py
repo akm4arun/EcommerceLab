@@ -24,7 +24,7 @@ from config import Config
 from ecommerce.extensions import db, migrate
 from ecommerce.routes.home import home_bp
 from ecommerce.models import Product
-from ecommerce.services.product_service import seed_products
+# from ecommerce.services.product_service import seed_products
 from ecommerce.routes.products import products_bp
 from ecommerce.routes.auth import auth_bp
 from ecommerce.routes.cart import cart_bp
@@ -47,7 +47,7 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     with app.app_context():
         db.create_all()
-        seed_products()
+        # seed_products()
 
     app.register_blueprint(home_bp)
     app.register_blueprint(products_bp)

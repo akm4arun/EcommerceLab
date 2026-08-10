@@ -33,114 +33,114 @@
 
     <!-- Electronics -->
     <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+    <a href="{{ url_for('products.products_by_category', category='electronics') }}" class="text-decoration-none text-dark">
         <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
+        <div class="card-body text-center">
             <h5 class="fw-bold mb-3">Electronics</h5>
             <img src="{{ url_for('static', filename='assets/categories/Electronics_category.jpg') }}"
                 class="img-fluid rounded category-img" alt="Electronics">
             <p class="small mt-3 mb-0">Laptops, gadgets and accessories</p>
-            </div>
         </div>
-        </a>
-    </div>
-
-    <!-- Gaming -->
-    <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
-        <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
-            <h5 class="fw-bold mb-3">Gaming</h5>
-            <img src="{{ url_for('static', filename='assets/categories/Gaming_category.jpg') }}"
-                class="img-fluid rounded category-img" alt="Gaming">
-            <p class="small mt-3 mb-0">Gaming laptops and accessories</p>
-            </div>
         </div>
-        </a>
-    </div>
-
-    <!-- Mobiles -->
-    <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
-        <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
-            <h5 class="fw-bold mb-3">Mobiles</h5>
-            <img src="{{ url_for('static', filename='assets/categories/Mobiles_category.jpg') }}"
-                class="img-fluid rounded category-img" alt="Mobiles">
-            <p class="small mt-3 mb-0">Smartphones and accessories</p>
-            </div>
-        </div>
-        </a>
+    </a>
     </div>
 
     <!-- Fashion -->
     <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+    <a href="{{ url_for('products.products_by_category', category='fashion') }}" class="text-decoration-none text-dark">
         <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
+        <div class="card-body text-center">
             <h5 class="fw-bold mb-3">Fashion</h5>
             <img src="{{ url_for('static', filename='assets/categories/Fashion_category.jpg') }}"
                 class="img-fluid rounded category-img" alt="Fashion">
-            <p class="small mt-3 mb-0">Clothing, shoes and watches</p>
-            </div>
+            <p class="small mt-3 mb-0">Clothing, shoes and accessories</p>
         </div>
-        </a>
-    </div>
-
-    <!-- Home & Kitchen -->
-    <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
-        <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
-            <h5 class="fw-bold mb-3">Home & Kitchen</h5>
-            <img src="{{ url_for('static', filename='assets/categories/HomeKichen_category.jpg') }}"
-                class="img-fluid rounded category-img" alt="Home and Kitchen">
-            <p class="small mt-3 mb-0">Appliances and cookware</p>
-            </div>
         </div>
-        </a>
-    </div>
-
-    <!-- Accessories -->
-    <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
-        <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
-            <h5 class="fw-bold mb-3">Accessories</h5>
-            <img src="{{ url_for('static', filename='assets/categories/Accessories_category.jpg') }}"
-                class="img-fluid rounded category-img" alt="Accessories">
-            <p class="small mt-3 mb-0">Cables, chargers and gadgets</p>
-            </div>
-        </div>
-        </a>
+    </a>
     </div>
 
     <!-- Books -->
     <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+    <a href="{{ url_for('products.products_by_category', category='books') }}" class="text-decoration-none text-dark">
         <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
+        <div class="card-body text-center">
             <h5 class="fw-bold mb-3">Books</h5>
             <img src="{{ url_for('static', filename='assets/categories/Books_category.jpg') }}"
                 class="img-fluid rounded category-img" alt="Books">
             <p class="small mt-3 mb-0">Learning and entertainment</p>
-            </div>
         </div>
-        </a>
+        </div>
+    </a>
+    </div>
+
+    <!-- Home & Kitchen -->
+    <div class="col-6 col-md-3">
+    <a href="{{ url_for('products.products_by_category', category='home-kitchen') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+        <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Home &amp; Kitchen</h5>
+            <img src="{{ url_for('static', filename='assets/categories/HomeKichen_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Home &amp; Kitchen">
+            <p class="small mt-3 mb-0">Appliances and kitchen essentials</p>
+        </div>
+        </div>
+    </a>
     </div>
 
     <!-- Sports -->
     <div class="col-6 col-md-3">
-        <a href="{{ url_for('products.product_list') }}" class="text-decoration-none text-dark">
+    <a href="{{ url_for('products.products_by_category', category='sports') }}" class="text-decoration-none text-dark">
         <div class="card h-100 shadow-sm border-0 category-card">
-            <div class="card-body text-center">
-            <h5 class="fw-bold mb-3">Sports & Fitness</h5>
+        <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Sports</h5>
             <img src="{{ url_for('static', filename='assets/categories/SportsFitness.jpg') }}"
-                class="img-fluid rounded category-img" alt="Sports and Fitness">
+                class="img-fluid rounded category-img" alt="Sports">
             <p class="small mt-3 mb-0">Fitness gear and sports items</p>
-            </div>
         </div>
-        </a>
+        </div>
+    </a>
+    </div>
+
+    <!-- Toys -->
+    <div class="col-6 col-md-3">
+    <a href="{{ url_for('products.products_by_category', category='toys') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+        <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Toys</h5>
+            <img src="{{ url_for('static', filename='assets/categories/Toys_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Toys">
+            <p class="small mt-3 mb-0">Fun and educational toys</p>
+        </div>
+        </div>
+    </a>
+    </div>
+
+    <!-- Beauty -->
+    <div class="col-6 col-md-3">
+    <a href="{{ url_for('products.products_by_category', category='beauty') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+        <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Beauty</h5>
+            <img src="{{ url_for('static', filename='assets/categories/Beauty_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Beauty">
+            <p class="small mt-3 mb-0">Beauty and personal care products</p>
+        </div>
+        </div>
+    </a>
+    </div>
+
+    <!-- Automotive -->
+    <div class="col-6 col-md-3">
+    <a href="{{ url_for('products.products_by_category', category='automotive') }}" class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 category-card">
+        <div class="card-body text-center">
+            <h5 class="fw-bold mb-3">Automotive</h5>
+            <img src="{{ url_for('static', filename='assets/categories/Automative_category.jpg') }}"
+                class="img-fluid rounded category-img" alt="Automotive">
+            <p class="small mt-3 mb-0">Car accessories and essentials</p>
+        </div>
+        </div>
+    </a>
     </div>
 
     </div>

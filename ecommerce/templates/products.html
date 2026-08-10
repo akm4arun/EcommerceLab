@@ -9,7 +9,7 @@ Products
 <div class="container mt-5">
 
     <h2 class="mb-4">
-        Products
+        {{ page_title }}
     </h2>
 
     <form method="GET" class="row mb-4 g-2">
@@ -59,10 +59,17 @@ Products
 
         <div class="col-md-2">
 
+            {% if current_category %}
+            <a href="{{ url_for('products.products_by_category', category=current_category) }}"
+            class="btn btn-secondary w-100">
+                Reset
+            </a>
+            {% else %}
             <a href="{{ url_for('products.product_list') }}"
             class="btn btn-secondary w-100">
                 Reset
             </a>
+            {% endif %}
 
         </div>
 
@@ -78,11 +85,11 @@ Products
                 {% if product.image_url %}
 
                 <img
-                    src="{{ url_for('static', filename='uploads/' + product.image_url) }}"
+                    src="{{ url_for('static', filename='assets/products/' + product.image_url) }}"
                     class="card-img-top"
                     alt="{{ product.name }}"
                     style="height:220px; object-fit:cover;">
-
+                    
                 {% else %}
 
                 <img
@@ -94,6 +101,10 @@ Products
                 {% endif %}
 
                 <div class="card-body">
+
+                    <span class="badge bg-primary text-uppercase mb-2">
+                        {{ product.category }}
+                    </span>
 
                     <h4>{{ product.name }}</h4>
 
@@ -144,10 +155,14 @@ Products
         {% if pagination.has_prev %}
         <li class="page-item">
             <a class="page-link"
-               href="{{ url_for('products.product_list',
-                                    page=pagination.prev_num,
-                                    q=search,
-                                    sort=sort) }}">
+               href="{% if current_category %}{{ url_for('products.products_by_category',
+                     category=current_category,
+                     page=pagination.prev_num,
+                     q=search,
+                     sort=sort) }}{% else %}{{ url_for('products.product_list',
+                     page=pagination.prev_num,
+                     q=search,
+                     sort=sort) }}{% endif %}">
                 Previous
             </a>
         </li>
@@ -160,10 +175,14 @@ Products
             <li class="page-item {% if p == pagination.page %}active{% endif %}">
 
                 <a class="page-link"
-                   href="{{ url_for('products.product_list',
-                                        page=p,
-                                        q=search,
-                                        sort=sort) }}">
+                   href="{% if current_category %}{{ url_for('products.products_by_category',
+                     category=current_category,
+                     page=p,
+                     q=search,
+                     sort=sort) }}{% else %}{{ url_for('products.product_list',
+                     page=p,
+                     q=search,
+                     sort=sort) }}{% endif %}">
                     {{ p }}
                 </a>
 
@@ -176,10 +195,14 @@ Products
         {% if pagination.has_next %}
         <li class="page-item">
             <a class="page-link"
-               href="{{ url_for('products.product_list',
-                                    page=pagination.next_num,
-                                    q=search,
-                                    sort=sort) }}">
+               href="{% if current_category %}{{ url_for('products.products_by_category',
+                     category=current_category,
+                     page=pagination.next_num,
+                     q=search,
+                     sort=sort) }}{% else %}{{ url_for('products.product_list',
+                     page=pagination.next_num,
+                     q=search,
+                     sort=sort) }}{% endif %}">
                 Next
             </a>
         </li>

@@ -1,54 +1,89 @@
 {% extends "base.html" %}
 
-{% block title %}
-{{ product.name }}
-{% endblock %}
+{% block title %}{{ product.name }}{% endblock %}
 
 {% block content %}
-
 <div class="container mt-5">
 
-    <div class="row">
+    <div class="row g-5 align-items-start">
 
-        <div class="col-md-8">
+        <div class="col-md-5">
 
-            <h1>{{ product.name }}</h1>
+            {% if product.image_url %}
+            <img src="{{ url_for('static', filename='assets/products/' + product.image_url) }}"
+                class="img-fluid rounded shadow-sm border"
+                alt="{{ product.name }}">
+            {% else %}
+            <img src="{{ url_for('static', filename='images/no-image.png') }}"
+                class="img-fluid rounded shadow-sm border"
+                alt="No Image">
+            {% endif %}
 
-            <p class="lead">
+        </div>
 
+        <div class="col-md-7">
+
+            <span class="badge bg-primary text-uppercase mb-2">
+                {{ product.category }}
+            </span>
+
+            <h1 class="fw-bold mb-3">{{ product.name }}</h1>
+
+            <p class="lead text-muted">
                 {{ product.description }}
-
             </p>
 
-            <h2>
-
+            <h2 class="text-success fw-bold mb-3">
                 ₹{{ "{:,.0f}".format(product.price) }}
-
             </h2>
 
+            <div class="row mb-3">
+                <div class="col-sm-6">
+                    <strong>Brand:</strong> {{ product.brand or 'N/A' }}
+                </div>
+                <div class="col-sm-6">
+                    <strong>Model:</strong> {{ product.model or 'N/A' }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-6">
+                    <strong>Warranty:</strong> {{ product.warranty or 'N/A' }}
+                </div>
+                <div class="col-sm-6">
+                    <strong>Rating:</strong>
+                    ⭐ {{ product.rating }}
+                </div>
+            </div>
+
             <p>
-
-                Available Stock:
-
+                <strong>Available Stock:</strong>
                 <span class="badge bg-success">
-
                     {{ product.stock }}
-
                 </span>
-
             </p>
 
-            <form
-                method="POST"
-                action="{{ url_for('cart.add_product', product_id=product.id) }}">
+            {% if product.specifications %}
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">Specifications</div>
+                <div class="card-body">
+                    <p class="mb-0">{{ product.specifications }}</p>
+                </div>
+            </div>
+            {% endif %}
 
-                <button
-                    class="btn btn-success"
-                    type="submit">
+            <form method="POST"
+                  action="{{ url_for('cart.add_product', product_id=product.id) }}"
+                  class="d-flex gap-3 flex-wrap">
 
+                <button class="btn btn-success btn-lg" type="submit">
                     🛒 Add to Cart
-
                 </button>
+
+                <a href="{{ url_for('products.products_by_category', category=product.category) }}"
+                   class="btn btn-outline-primary btn-lg">
+                    Back to {{ product.category.title() }}
+                </a>
 
             </form>
 
@@ -57,5 +92,4 @@
     </div>
 
 </div>
-
 {% endblock %}
