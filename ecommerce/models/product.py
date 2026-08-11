@@ -10,6 +10,7 @@ class Product(db.Model):
     image_url = db.Column(db.String(255), nullable=True)
     stock = db.Column(db.Integer, nullable=False, default=0)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    featured = db.Column(db.Boolean, default=False)
 
     # New fields
     category = db.Column(db.String(50), nullable=False, default="electronics")
