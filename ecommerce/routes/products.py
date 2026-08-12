@@ -50,7 +50,7 @@ def products_by_category(category):
     category = category.lower()
 
     # support both home_kitchen and home-kitchen URLs
-    category = category.replace('-', '_')
+    category = category.replace('_' , '-')
 
     if category not in VALID_CATEGORIES:
         return render_template('404.html'), 404
