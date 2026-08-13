@@ -35,6 +35,9 @@ jobs:
       - name: Set Flask app
         run: echo "FLASK_APP=app.py" >> $GITHUB_ENV
 
+      - name: Create instance folder
+        run: mkdir -p instance
+
       - name: Create database schema
         run: |
             python -c "from ecommerce import create_app; from ecommerce.extensions import db; app=create_app(); app.app_context().push(); db.create_all(); print('Database created')"
