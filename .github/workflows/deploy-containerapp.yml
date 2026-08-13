@@ -38,20 +38,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Verify Azure Login
+      - name: Verify Azure access
         run: |
-          az account show --output table
+          echo "=== Identity ==="
+          az account show \
+            --query "{Subscription:id,SubscriptionName:name,Tenant:tenantId,User:user.name}" \
+            -o table
 
-      - name: Verify Azure Resources
-        run: |
-          echo "Azure account:"
-          az account show --query "{name:name,id:id,tenantId:tenantId,user:user.name}" -o table
-
-          echo "Resource group:"
+          echo "=== Resource Group ==="
           az group show \
             --name rg-ecommercelab-dev \
             --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            --query "{name:name,id:id,location:location}" \
+            --query "{Name:name,Id:id,Location:location}" \
             -o table
 
       # 3. Setup Python
