@@ -42,6 +42,22 @@ jobs:
         run: |
           az account show --output table
 
+      - name: Verify Azure Resources
+        run: |
+          echo "Azure subscription:"
+          az account show --query "{name:name,id:id,tenantId:tenantId}" -o table
+
+          echo "Checking resource group:"
+          az group show \
+            --name $RESOURCE_GROUP \
+            --output table
+
+          echo "Checking Container App:"
+          az containerapp show \
+            --name $CONTAINER_APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --output table
+
       # 3. Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
