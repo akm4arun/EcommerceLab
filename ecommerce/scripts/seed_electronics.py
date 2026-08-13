@@ -1,11 +1,11 @@
 
 # seed_electronics.py
 
-from app import create_app
-from ecommerce import db
-from ecommerce.models.product import Product
+# from app import create_app
+# from ecommerce import db
+# from ecommerce.models.product import Product
 
-app = create_app()
+# app = create_app()
 
 PRODUCTS = [
     {
@@ -205,16 +205,16 @@ PRODUCTS = [
     }
 ]
 
-with app.app_context():
-    existing = Product.query.filter_by(category='electronics').count()
+# with app.app_context():
+#     existing = Product.query.filter_by(category='electronics').count()
 
-    if existing > 0:
-        print(f'Electronics category already has {existing} products. Skipping insert.')
-    else:
-        for item in PRODUCTS:
-            product = Product(**item)
-            db.session.add(product)
+#     if existing > 0:
+#         print(f'Electronics category already has {existing} products. Skipping insert.')
+#     else:
+#         for item in PRODUCTS:
+#             product = Product(**item)
+#             db.session.add(product)
 
-        db.session.commit()
-        print(f'Inserted {len(PRODUCTS)} electronics products successfully.')
+#         db.session.commit()
+#         print(f'Inserted {len(PRODUCTS)} electronics products successfully.')
 

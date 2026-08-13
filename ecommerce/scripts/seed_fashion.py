@@ -1,8 +1,8 @@
-from app import create_app
-from ecommerce.extensions import db
-from ecommerce.models.product import Product
+# from app import create_app
+# from ecommerce.extensions import db
+# from ecommerce.models.product import Product
 
-app = create_app()
+# app = create_app()
 
 PRODUCTS = [
     {
@@ -202,15 +202,15 @@ PRODUCTS = [
     }
 ]
 
-with app.app_context():
-    existing = Product.query.filter_by(category='fashion').count()
+# with app.app_context():
+#     existing = Product.query.filter_by(category='fashion').count()
 
-    if existing >= 15:
-        print(f'Fashion category already has {existing} products. Skipping insert.')
-    else:
-        for item in PRODUCTS:
-            product = Product(**item)
-            db.session.add(product)
+#     if existing >= 15:
+#         print(f'Fashion category already has {existing} products. Skipping insert.')
+#     else:
+#         for item in PRODUCTS:
+#             product = Product(**item)
+#             db.session.add(product)
 
-        db.session.commit()
-        print(f'Inserted {len(PRODUCTS)} fashion products successfully.')
+#         db.session.commit()
+#         print(f'Inserted {len(PRODUCTS)} fashion products successfully.')

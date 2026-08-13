@@ -1,15 +1,15 @@
-from app import create_app
-from ecommerce.extensions import db
-from ecommerce.models.product import Product
+# from app import create_app
+# from ecommerce.extensions import db
+# from ecommerce.models.product import Product
 
-app = create_app()
+# app = create_app()
 
 PRODUCTS = [
     {
         'name': 'Air Fryer 4L',
         'description': '4-liter digital air fryer with rapid hot air technology.',
         'price': 5499,
-        'image_url': 'air_fryer_4l.jpg',
+        'image_url': 'home-kitchen/air_fryer_4l.jpg',
         'stock': 18,
         'category': 'home-kitchen',
         'brand': 'Philips',
@@ -21,7 +21,7 @@ PRODUCTS = [
         'name': 'Mixer Grinder 750W',
         'description': '750W mixer grinder with 3 stainless steel jars.',
         'price': 3499,
-        'image_url': 'mixer_grinder_750w.jpg',
+        'image_url': 'home-kitchen/mixer_grinder_750w.jpg',
         'stock': 22,
         'category': 'home-kitchen',
         'brand': 'Prestige',
@@ -33,7 +33,7 @@ PRODUCTS = [
         'name': 'Induction Cooktop',
         'description': 'Energy-efficient induction cooktop with touch controls.',
         'price': 2499,
-        'image_url': 'induction_cooktop.jpg',
+        'image_url': 'home-kitchen/induction_cooktop.jpg',
         'stock': 30,
         'category': 'home-kitchen',
         'brand': 'Bajaj',
@@ -45,7 +45,7 @@ PRODUCTS = [
         'name': 'Electric Kettle 1.5L',
         'description': 'Fast boiling stainless steel electric kettle.',
         'price': 1299,
-        'image_url': 'electric_kettle_1_5l.jpg',
+        'image_url': 'home-kitchen/electric_kettle_1_5l.jpg',
         'stock': 35,
         'category': 'home-kitchen',
         'brand': 'Pigeon',
@@ -57,7 +57,7 @@ PRODUCTS = [
         'name': 'Cookware Set 5 Pieces',
         'description': 'Non-stick cookware set suitable for gas and induction.',
         'price': 3999,
-        'image_url': 'cookware_set_5pc.jpg',
+        'image_url': 'home-kitchen/cookware_set_5pc.jpg',
         'stock': 16,
         'category': 'home-kitchen',
         'brand': 'Wonderchef',
@@ -69,7 +69,7 @@ PRODUCTS = [
         'name': 'Stainless Steel Dinner Set',
         'description': '24-piece stainless steel dinner set for family use.',
         'price': 2799,
-        'image_url': 'dinner_set_24pc.jpg',
+        'image_url': 'home-kitchen/dinner_set_24pc.jpg',
         'stock': 20,
         'category': 'home-kitchen',
         'brand': 'Cello',
@@ -81,7 +81,7 @@ PRODUCTS = [
         'name': 'Vacuum Cleaner 1200W',
         'description': 'Compact vacuum cleaner with powerful suction.',
         'price': 4599,
-        'image_url': 'vacuum_cleaner_1200w.jpg',
+        'image_url': 'home-kitchen/vacuum_cleaner_1200w.jpg',
         'stock': 14,
         'category': 'home-kitchen',
         'brand': 'Eureka Forbes',
@@ -93,7 +93,7 @@ PRODUCTS = [
         'name': 'Steam Iron 1600W',
         'description': 'Steam iron with ceramic soleplate and spray function.',
         'price': 1799,
-        'image_url': 'steam_iron_1600w.jpg',
+        'image_url': 'home-kitchen/steam_iron_1600w.jpg',
         'stock': 28,
         'category': 'home-kitchen',
         'brand': 'Philips',
@@ -105,7 +105,7 @@ PRODUCTS = [
         'name': 'Water Bottle Set 6 Pieces',
         'description': 'BPA-free refrigerator water bottle set.',
         'price': 799,
-        'image_url': 'water_bottle_set_6pc.jpg',
+        'image_url': 'home-kitchen/water_bottle_set_6pc.jpg',
         'stock': 40,
         'category': 'home-kitchen',
         'brand': 'Milton',
@@ -117,7 +117,7 @@ PRODUCTS = [
         'name': 'Storage Container Set',
         'description': 'Airtight kitchen storage containers for dry food.',
         'price': 1599,
-        'image_url': 'storage_container_set.jpg',
+        'image_url': 'home-kitchen/storage_container_set.jpg',
         'stock': 26,
         'category': 'home-kitchen',
         'brand': 'Signoraware',
@@ -129,7 +129,7 @@ PRODUCTS = [
         'name': 'Pressure Cooker 5L',
         'description': 'Hard anodized pressure cooker for everyday cooking.',
         'price': 2899,
-        'image_url': 'pressure_cooker_5l.jpg',
+        'image_url': 'home-kitchen/pressure_cooker_5l.jpg',
         'stock': 19,
         'category': 'home-kitchen',
         'brand': 'Hawkins',
@@ -141,7 +141,7 @@ PRODUCTS = [
         'name': 'Chimney 60cm',
         'description': 'Wall-mounted kitchen chimney with auto-clean feature.',
         'price': 8999,
-        'image_url': 'chimney_60cm.jpg',
+        'image_url': 'home-kitchen/chimney_60cm.jpg',
         'stock': 8,
         'category': 'home-kitchen',
         'brand': 'Faber',
@@ -153,7 +153,7 @@ PRODUCTS = [
         'name': 'Microwave Oven 20L',
         'description': 'Solo microwave oven for reheating and cooking.',
         'price': 6499,
-        'image_url': 'microwave_20l.jpg',
+        'image_url': 'home-kitchen/microwave_20l.jpg',
         'stock': 12,
         'category': 'home-kitchen',
         'brand': 'LG',
@@ -165,7 +165,7 @@ PRODUCTS = [
         'name': 'Hand Blender 300W',
         'description': 'Lightweight hand blender for smoothies and soups.',
         'price': 1399,
-        'image_url': 'hand_blender_300w.jpg',
+        'image_url': 'home-kitchen/hand_blender_300w.jpg',
         'stock': 24,
         'category': 'home-kitchen',
         'brand': 'Inalsa',
@@ -177,7 +177,7 @@ PRODUCTS = [
         'name': 'Rice Cooker 1.8L',
         'description': 'Automatic rice cooker with keep-warm function.',
         'price': 2299,
-        'image_url': 'rice_cooker_1_8l.jpg',
+        'image_url': 'home-kitchen/rice_cooker_1_8l.jpg',
         'stock': 21,
         'category': 'home-kitchen',
         'brand': 'Panasonic',
@@ -187,15 +187,15 @@ PRODUCTS = [
     }
 ]
 
-with app.app_context():
-    existing = Product.query.filter_by(category='home-kitchen').count()
+# with app.app_context():
+#     existing = Product.query.filter_by(category='home-kitchen').count()
 
-    if existing >= 15:
-        print(f'Home & Kitchen category already has {existing} products. Skipping insert.')
-    else:
-        for item in PRODUCTS:
-            product = Product(**item)
-            db.session.add(product)
+#     if existing >= 15:
+#         print(f'Home & Kitchen category already has {existing} products. Skipping insert.')
+#     else:
+#         for item in PRODUCTS:
+#             product = Product(**item)
+#             db.session.add(product)
 
-        db.session.commit()
-        print('Inserted 15 Home & Kitchen products successfully.')
+#         db.session.commit()
+#         print('Inserted 15 Home & Kitchen products successfully.')

@@ -1,0 +1,121 @@
+category,name,image_url
+automotive,Alloy Wheel Cleaner Spray,automotive/wheel_cleaner.jpg
+automotive,Bike Helmet ISI Certified,automotive/bike_helmet.jpg
+automotive,Bike Phone Mount Handlebar,automotive/bike_phone_mount.jpg
+automotive,Car Air Freshener Gel,automotive/air_freshener.jpg
+automotive,Car Bluetooth FM Transmitter,automotive/fm_transmitter.jpg
+automotive,Car Cover Waterproof,automotive/car_cover.jpg
+automotive,Car Mobile Holder Dashboard,automotive/mobile_holder.jpg
+automotive,Car Pressure Washer Gun,automotive/pressure_washer_gun.jpg
+automotive,Car Vacuum Cleaner Portable,automotive/car_vacuum.jpg
+automotive,Dash Camera Full HD,automotive/dash_camera.jpg
+automotive,Engine Oil 5W-30 Fully Synthetic,automotive/engine_oil_5w30.jpg
+automotive,Jump Starter Power Bank,automotive/jump_starter.jpg
+automotive,Microfiber Cleaning Cloth Pack,automotive/microfiber_cloth.jpg
+automotive,Seat Cover Set Premium,automotive/seat_cover_set.jpg
+automotive,Tyre Inflator Digital,automotive/tyre_inflator.jpg
+beauty,Aloe Vera Gel,beauty/aloe_vera_gel.jpg
+beauty,Beard Trimmer Cordless,beauty/beard_trimmer.jpg
+beauty,Body Lotion Cocoa Butter,beauty/body_lotion_cocoa.jpg
+beauty,Face Wash Oil Control,beauty/facewash_oilcontrol.jpg
+beauty,Facial Kit Gold,beauty/facial_kit_gold.jpg
+beauty,Hair Conditioner Smooth,beauty/conditioner_smooth.jpg
+beauty,Hair Dryer 1200W,beauty/hair_dryer.jpg
+beauty,Lip Balm Strawberry,beauty/lip_balm_strawberry.jpg
+beauty,Liquid Foundation Natural,beauty/foundation_natural.jpg
+beauty,Matte Lipstick Nude,beauty/matte_lipstick_nude.jpg
+beauty,Nail Paint Set 6 Shades,beauty/nail_paint_set.jpg
+beauty,Perfume Floral Mist,beauty/perfume_floral.jpg
+beauty,Shampoo Anti Hair Fall,beauty/shampoo_hairfall.jpg
+beauty,Sunscreen SPF 50,beauty/sunscreen_spf50.jpg
+beauty,Vitamin C Face Serum,beauty/vitamin_c_serum.jpg
+books,Atomic Habits,atomic_habits.jpg
+books,Can’t Hurt Me,cant_hurt_me.jpg
+books,Deep Work,deep_work.jpg
+books,Ikigai,ikigai.jpg
+books,Man’s Search for Meaning,mans_search_for_meaning.jpg
+books,Rich Dad Poor Dad,rich_dad_poor_dad.jpg
+books,Sapiens,sapiens.jpg
+books,Start With Why,start_with_why.jpg
+books,The 7 Habits of Highly Effective People,7_habits.jpg
+books,The Alchemist,the_alchemist.jpg
+books,The Intelligent Investor,intelligent_investor.jpg
+books,The Power of Your Subconscious Mind,subconscious_mind.jpg
+books,The Psychology of Money,psychology_of_money.jpg
+books,Think and Grow Rich,think_and_grow_rich.jpg
+books,Zero to One,zero_to_one.jpg
+electronics,ASUS Vivobook S15 OLED,electronics/vivobook_s15_oled.jpg
+electronics,Apple MacBook Air M4,electronics/macbook_air_m4.jpg
+electronics,Canon PIXMA G3010,electronics/canon_g3010.jpg
+electronics,Dell Inspiron 15 3530,electronics/dell_inspiron_3530.jpg
+electronics,HP Pavilion Plus 14,electronics/hp_pavilion_plus14.jpg
+electronics,JBL Tune 770NC,electronics/jbl_770nc.jpg
+electronics,LG 27US500 4K Monitor,electronics/lg_27us500.jpg
+electronics,Lenovo ThinkPad E16 Gen 2,electronics/thinkpad_e16.jpg
+electronics,Logitech K380 Keyboard,electronics/k380_keyboard.jpg
+electronics,Logitech MX Master 3S,electronics/mx_master_3s.jpg
+electronics,Samsung Smart Monitor M7 32,electronics/samsung_m7_32.jpg
+electronics,Seagate Expansion 1TB SSD,electronics/seagate_ssd_1tb.jpg
+electronics,Sony WH-1000XM5,electronics/sony_xm5.jpg
+electronics,TP-Link Archer AX55 Wi-Fi 6 Router,electronics/tplink_ax55.jpg
+electronics,WD My Passport 2TB,electronics/wd_mypassport_2tb.jpg
+fashion,Men Casual Shorts,fashion/shorts.jpg
+fashion,Men Denim Jeans,fashion/denim_jeans.jpg
+fashion,Men Formal Shirt,fashion/formal_shirt.jpg
+fashion,Men Hoodie Sweatshirt,fashion/hoodie.jpg
+fashion,Men Leather Belt,fashion/belt.jpg
+fashion,Men Running Shoes,fashion/running_shoes.jpg
+fashion,Men Slim Fit T-Shirt,fashion/men_tshirt.jpg
+fashion,Men Sports Cap,fashion/cap.jpg
+fashion,Women Floral Dress,fashion/floral_dress.jpg
+fashion,Women Handbag,fashion/handbag.jpg
+fashion,Women Kurti Set,fashion/kurti_set.jpg
+fashion,Women Leggings Pack,fashion/leggings.jpg
+fashion,Women Saree Silk Blend,fashion/saree.jpg
+fashion,Women Sneakers,fashion/women_sneakers.jpg
+fashion,Women Winter Jacket,fashion/winter_jacket.jpg
+home-kitchen,Air Fryer 4L,air_fryer_4l.jpg
+home-kitchen,Chimney 60cm,chimney_60cm.jpg
+home-kitchen,Cookware Set 5 Pieces,cookware_set_5pc.jpg
+home-kitchen,Electric Kettle 1.5L,electric_kettle_1_5l.jpg
+home-kitchen,Hand Blender 300W,hand_blender_300w.jpg
+home-kitchen,Induction Cooktop,induction_cooktop.jpg
+home-kitchen,Microwave Oven 20L,microwave_20l.jpg
+home-kitchen,Mixer Grinder 750W,mixer_grinder_750w.jpg
+home-kitchen,Pressure Cooker 5L,pressure_cooker_5l.jpg
+home-kitchen,Rice Cooker 1.8L,rice_cooker_1_8l.jpg
+home-kitchen,Stainless Steel Dinner Set,dinner_set_24pc.jpg
+home-kitchen,Steam Iron 1600W,steam_iron_1600w.jpg
+home-kitchen,Storage Container Set,storage_container_set.jpg
+home-kitchen,Vacuum Cleaner 1200W,vacuum_cleaner_1200w.jpg
+home-kitchen,Water Bottle Set 6 Pieces,water_bottle_set_6pc.jpg
+sports,Adjustable Dumbbell Set 20kg,sports/dumbbell_20kg.jpg
+sports,Badminton Racket Pair,sports/badminton_pair.jpg
+sports,Cricket Bat Kashmir Willow,sports/cricket_bat.jpg
+sports,Cycling Helmet,sports/cycling_helmet.jpg
+sports,Fitness Smartwatch,sports/fitness_watch.jpg
+sports,Foam Roller,sports/foam_roller.jpg
+sports,Football Size 5,sports/football_size5.jpg
+sports,Gym Gloves,sports/gym_gloves.jpg
+sports,Kettlebell 10kg,sports/kettlebell_10kg.jpg
+sports,Protein Shaker 700ml,sports/protein_shaker.jpg
+sports,Push Up Bar Set,sports/pushup_bars.jpg
+sports,Resistance Bands Set,sports/resistance_bands.jpg
+sports,Skipping Rope Adjustable,sports/skipping_rope.jpg
+sports,Treadmill 2HP,sports/treadmill_2hp.jpg
+sports,Yoga Mat 6mm,sports/yoga_mat_6mm.jpg
+toys,Action Figure Superhero,toys/action_figure.jpg
+toys,Art & Craft Kit,toys/art_craft_kit.jpg
+toys,Basketball Mini Hoop Set,toys/mini_hoop.jpg
+toys,Board Game Monopoly,toys/monopoly.jpg
+toys,Building Blocks Set 500 Pieces,toys/building_blocks_500.jpg
+toys,Chess Set Wooden,toys/chess_wooden.jpg
+toys,Doctor Play Set,toys/doctor_play_set.jpg
+toys,Doll House Set,toys/doll_house.jpg
+toys,Educational Science Kit,toys/science_kit.jpg
+toys,Magnetic Drawing Board,toys/drawing_board.jpg
+toys,Outdoor Cricket Set,toys/cricket_set_kids.jpg
+toys,Puzzle 1000 Pieces,toys/puzzle_1000.jpg
+toys,Remote Control Car,toys/rc_car.jpg
+toys,Stuffed Teddy Bear Large,toys/teddy_bear_large.jpg
+toys,Toy Train Set,toys/train_set.jpg
