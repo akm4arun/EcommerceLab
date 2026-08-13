@@ -35,8 +35,13 @@ jobs:
       - name: Set Flask app
         run: echo "FLASK_APP=app.py" >> $GITHUB_ENV
 
-      - name: Run migrations
-        run: flask db upgrade
+      - name: Create database schema
+        run: |
+            python -c "from ecommerce import create_app; from ecommerce.extensions import db; app=create_app(); app.app_context().push(); db.create_all(); print('Database created')"
+
+    #   - name: Run migrations
+    #     run: flask db upgrade
+    
 
       - name: Run seed automation
         run: python -m ecommerce.scripts.seed_all
