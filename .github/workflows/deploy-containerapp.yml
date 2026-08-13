@@ -40,11 +40,18 @@ jobs:
 
       
       - name: Verify Azure access
+        shell: bash
         run: |
-          echo "=== Identity ==="
+          echo "=== Azure Account ==="
           az account show \
-            --query "{Subscription:id,SubscriptionName:name,Tenant:tenantId,User:user.name}" \
-            -o table
+            --query "{SubscriptionId:id,SubscriptionName:name,TenantId:tenantId,User:user.name,UserType:user.type}" \
+            -o json
+
+          echo "=== Azure AD Service Principal ==="
+          az ad sp show \
+            --id "${{ secrets.AZURE_CLIENT_ID }}" \
+            --query "{AppId:appId,ObjectId:id,DisplayName:displayName}" \
+            -o json
 
           echo "=== Resource Group ==="
           az group show \
