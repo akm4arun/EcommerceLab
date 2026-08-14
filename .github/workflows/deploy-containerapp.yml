@@ -42,23 +42,29 @@ jobs:
       - name: Verify Azure access
         shell: bash
         run: |
-          echo "=== Azure Account ==="
-          az account show \
-            --query "{SubscriptionId:id,SubscriptionName:name,TenantId:tenantId,User:user.name,UserType:user.type}" \
-            -o json
+          echo "=== Account JSON ==="
+          az account show -o json
 
-          echo "=== Azure AD Service Principal ==="
+          echo "=== Expected Subscription from Secret ==="
+          echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+          echo "=== Current Subscription ID ==="
+          az account show --query id -o tsv
+
+          echo "=== Current Tenant ID ==="
+          az account show --query tenantId -o tsv
+
+          echo "=== Service Principal ==="
           az ad sp show \
             --id "${{ secrets.AZURE_CLIENT_ID }}" \
             --query "{AppId:appId,ObjectId:id,DisplayName:displayName}" \
             -o json
 
-          echo "=== Resource Group ==="
-          az group show \
-            --name rg-ecommercelab-dev \
-            --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            --query "{Name:name,Id:id,Location:location}" \
-            -o table
+          echo "=== Resource Group via ARM ==="
+          az rest \
+            --method GET \
+            --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourcegroups/rg-ecommercelab-dev?api-version=2021-04-01" \
+            -o json
 
       # 3. Setup Python
       - name: Setup Python
