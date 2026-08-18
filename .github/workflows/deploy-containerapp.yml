@@ -103,10 +103,64 @@ jobs:
           docker push \
             $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
 
-      # 9. Deploy image to Azure Container App
-      - name: Deploy to Azure Container App
+      # 9. Capture the current production revision
+      - name: Capture previous known-good revision
+        id: previous_revision
+        shell: bash
+        run: |
+          PREVIOUS_REVISION=$(az containerapp revision list \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[?properties.trafficWeight == \`100\`].name | [0]" \
+            -o tsv)
+
+          if [ -z "$PREVIOUS_REVISION" ]; then
+            echo "ERROR: Could not determine the current production revision."
+            exit 1
+          fi
+
+          echo "Previous known-good revision: $PREVIOUS_REVISION"
+          echo "revision=$PREVIOUS_REVISION" >> "$GITHUB_OUTPUT"
+
+      # 10. Deploy new image
+      - name: Deploy new Container App revision
         run: |
           az containerapp update \
-            --name $CONTAINER_APP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --image $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
+
+      # 11. Capture the newly deployed revision
+      - name: Capture new revision
+        id: new_revision
+        shell: bash
+        run: |
+          NEW_REVISION=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "properties.latestRevisionName" \
+            -o tsv)
+
+          if [ -z "$NEW_REVISION" ]; then
+            echo "ERROR: Could not determine the new revision."
+            exit 1
+          fi
+
+          echo "New revision: $NEW_REVISION"
+          echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
+
+      # 12. Show deployment revision evidence
+      - name: Show deployment revisions
+        run: |
+          echo "Previous known-good revision:"
+          echo "${{ steps.previous_revision.outputs.revision }}"
+
+          echo "New revision:"
+          echo "${{ steps.new_revision.outputs.revision }}"
+
+          echo "All revisions:"
+          az containerapp revision list \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[].{name:name,active:properties.active,traffic:properties.trafficWeight,state:properties.provisioningState}" \
+            -o table
