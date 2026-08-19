@@ -149,8 +149,10 @@ jobs:
           echo "New revision: $NEW_REVISION"
           echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
 
-      # 12. Smoke test the newly deployed revision
+      # 12. Smoke test
       - name: Smoke test new revision
+        id: smoke_test
+        continue-on-error: true
         shell: bash
         run: |
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
@@ -173,11 +175,28 @@ jobs:
             --max-time 30 \
             "https://$NEW_FQDN/"
 
-          echo
           echo "Smoke test passed."
 
-      # 13. Promote the new revision to production
+      # 13. Rollback on smoke-test failure
+      - name: Rollback to previous known-good revision
+        if: steps.smoke_test.outcome == 'failure'
+        shell: bash
+        run: |
+          PREVIOUS_REVISION="${{ steps.previous_revision.outputs.revision }}"
+
+          echo "Smoke test failed."
+          echo "Rolling back to: $PREVIOUS_REVISION"
+
+          az containerapp ingress traffic set \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision-weight "$PREVIOUS_REVISION=100"
+
+          echo "Rollback completed successfully."
+
+      # 14. Promote only if smoke test passed
       - name: Promote new revision
+        if: steps.smoke_test.outcome == 'success'
         shell: bash
         run: |
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
@@ -191,8 +210,10 @@ jobs:
 
           echo "Revision promoted successfully."
 
-      # 14. Show deployment revision evidence
+      # 15. Show evidence
       - name: Show deployment revisions
+        if: always()
+        shell: bash
         run: |
           echo "Previous known-good revision:"
           echo "${{ steps.previous_revision.outputs.revision }}"
@@ -200,9 +221,22 @@ jobs:
           echo "New revision:"
           echo "${{ steps.new_revision.outputs.revision }}"
 
+          echo "Smoke test result:"
+          echo "${{ steps.smoke_test.outcome }}"
+
           echo "All revisions:"
+
           az containerapp revision list \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
             --query "[].{name:name,active:properties.active,traffic:properties.trafficWeight,state:properties.provisioningState}" \
             -o table
+
+      # 16. Fail workflow if smoke test failed
+      - name: Mark deployment as failed
+        if: steps.smoke_test.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "Deployment failed smoke testing."
+          echo "Rollback was attempted."
+          exit 1
