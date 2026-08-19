@@ -149,7 +149,34 @@ jobs:
           echo "New revision: $NEW_REVISION"
           echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
 
-      # 12. Show deployment revision evidence
+      # 12. Smoke test the newly deployed revision
+      - name: Smoke test new revision
+        shell: bash
+        run: |
+          NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
+
+          NEW_FQDN=$(az containerapp revision show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision "$NEW_REVISION" \
+            --query "properties.fqdn" \
+            -o tsv)
+
+          if [ -z "$NEW_FQDN" ]; then
+            echo "ERROR: Could not determine the new revision FQDN."
+            exit 1
+          fi
+
+          echo "Smoke testing: https://$NEW_FQDN/"
+
+          curl --fail --silent --show-error \
+            --max-time 30 \
+            "https://$NEW_FQDN/"
+
+          echo
+          echo "Smoke test passed."
+
+      # 13. Show deployment revision evidence
       - name: Show deployment revisions
         run: |
           echo "Previous known-good revision:"
