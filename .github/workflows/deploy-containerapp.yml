@@ -176,7 +176,22 @@ jobs:
           echo
           echo "Smoke test passed."
 
-      # 13. Show deployment revision evidence
+      # 13. Promote the new revision to production
+      - name: Promote new revision
+        shell: bash
+        run: |
+          NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
+
+          echo "Promoting revision: $NEW_REVISION"
+
+          az containerapp ingress traffic set \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision-weight "$NEW_REVISION=100"
+
+          echo "Revision promoted successfully."
+
+      # 14. Show deployment revision evidence
       - name: Show deployment revisions
         run: |
           echo "Previous known-good revision:"
