@@ -173,7 +173,7 @@ jobs:
 
           curl --fail --silent --show-error \
             --max-time 30 \
-            "https://$NEW_FQDN/"
+            "https://$NEW_FQDN/this-endpoint-must-fail"
 
           echo "Smoke test passed."
 
