@@ -20,8 +20,6 @@ def create_app(config_class=Config):
     # Load configuration
     app.config.from_object(config_class)
 
-    # Helpful while learning; remove later if desired
-    print('DATABASE =', app.config['SQLALCHEMY_DATABASE_URI'])
 
     # Initialize extensions
     db.init_app(app)
