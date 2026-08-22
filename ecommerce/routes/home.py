@@ -12,11 +12,6 @@ def home():
 def health():
     return {"status": "ok"}, 200
 
-# Temporary endpoint for Phase 5 monitoring validation.
-# Remove after alert testing is complete.
-@home_bp.route("/monitoring-test-error")
-def monitoring_test_error():
-    return "Controlled monitoring test failure", 500
 
 # from flask import Blueprint, current_app, render_template
 
