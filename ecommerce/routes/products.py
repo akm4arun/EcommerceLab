@@ -21,6 +21,7 @@ VALID_CATEGORIES = [
 
 @products_bp.route("/")
 def product_list():
+    raise RuntimeError("SIMULATED_PRODUCTION_INCIDENT: products endpoint failure")
 
     search = request.args.get("q", "").strip()
     sort = request.args.get("sort", "name_asc")
