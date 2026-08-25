@@ -226,18 +226,18 @@ jobs:
           }
 
           # Critical EcommerceLab endpoints
-          validate_endpoint "/"
-          validate_endpoint "/products/"
-          validate_endpoint "/products/category/electronics"
-          validate_endpoint "/products/category/fashion"
-          validate_endpoint "/products/category/books"
-          validate_endpoint "/products/category/home-kitchen"
-          validate_endpoint "/products/category/sports"
-          validate_endpoint "/products/category/toys"
-          validate_endpoint "/products/category/beauty"
-          validate_endpoint "/products/category/automotive"
-          validate_endpoint "/cart/"
-          validate_endpoint "/orders/my-orders"
+          validate_endpoint "/" 200
+          validate_endpoint "/products/" 200
+          validate_endpoint "/products/category/electronics" 200
+          validate_endpoint "/products/category/fashion" 200
+          validate_endpoint "/products/category/books" 200
+          validate_endpoint "/products/category/home-kitchen" 200
+          validate_endpoint "/products/category/sports" 200
+          validate_endpoint "/products/category/toys" 200
+          validate_endpoint "/products/category/beauty" 200
+          validate_endpoint "/products/category/automotive" 200
+          validate_endpoint "/cart/" 302
+          validate_endpoint "/orders/my-orders" 302
 
           echo ""
           echo "=============================================="
