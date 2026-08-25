@@ -183,7 +183,7 @@ jobs:
           echo "FQDN     : https://$NEW_FQDN"
           echo "=============================================="
 
-                    FAILED=0
+          FAILED=0
 
           validate_endpoint() {
             local ENDPOINT_PATH="$1"
