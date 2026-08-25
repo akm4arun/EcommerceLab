@@ -228,7 +228,14 @@ jobs:
           # Critical EcommerceLab endpoints
           validate_endpoint "/"
           validate_endpoint "/products/"
-          validate_endpoint "/products/category/"
+          validate_endpoint "/products/category/electronics"
+          validate_endpoint "/products/category/fashion"
+          validate_endpoint "/products/category/books"
+          validate_endpoint "/products/category/home-kitchen"
+          validate_endpoint "/products/category/sports"
+          validate_endpoint "/products/category/toys"
+          validate_endpoint "/products/category/beauty"
+          validate_endpoint "/products/category/automotive"
           validate_endpoint "/cart/"
           validate_endpoint "/orders/my-orders"
 
