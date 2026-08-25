@@ -149,13 +149,20 @@ jobs:
           echo "New revision: $NEW_REVISION"
           echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
 
-      # 12. Smoke test
-      - name: Smoke test new revision
-        id: smoke_test
+      # 12. Validate critical endpoints on the new revision
+      - name: Validate critical endpoints
+        id: critical_endpoint_test
         continue-on-error: true
         shell: bash
         run: |
+          set -u
+
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
+
+          if [ -z "$NEW_REVISION" ]; then
+            echo "ERROR: New revision is empty."
+            exit 1
+          fi
 
           NEW_FQDN=$(az containerapp revision show \
             --name "$CONTAINER_APP_NAME" \
@@ -169,34 +176,116 @@ jobs:
             exit 1
           fi
 
-          echo "Smoke testing: https://$NEW_FQDN/"
+          echo "=============================================="
+          echo "Critical Endpoint Validation"
+          echo "=============================================="
+          echo "Revision : $NEW_REVISION"
+          echo "FQDN     : https://$NEW_FQDN"
+          echo "=============================================="
 
-          curl --fail --silent --show-error \
-            --max-time 30 \
-            "https://$NEW_FQDN/"
+          FAILED=0
 
-          echo "Smoke test passed."
+          validate_endpoint() {
+            local PATH="$1"
+            local URL="https://$NEW_FQDN$PATH"
 
-      # 13. Rollback on smoke-test failure
+            echo ""
+            echo "Testing: $URL"
+
+            HTTP_CODE=$(curl \
+              --silent \
+              --show-error \
+              --output /dev/null \
+              --write-out "%{http_code}" \
+              --max-time 30 \
+              --retry 2 \
+              --retry-delay 2 \
+              "$URL")
+
+            CURL_EXIT=$?
+
+            if [ "$CURL_EXIT" -ne 0 ]; then
+              echo "FAIL: $PATH"
+              echo "curl exit code: $CURL_EXIT"
+              FAILED=1
+              return
+            fi
+
+            echo "HTTP status: $HTTP_CODE"
+
+            if [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]]; then
+              echo "PASS: $PATH"
+            else
+              echo "FAIL: $PATH returned HTTP $HTTP_CODE"
+              FAILED=1
+            fi
+          }
+
+          # Critical EcommerceLab endpoints
+          validate_endpoint "/"
+          validate_endpoint "/products/"
+          validate_endpoint "/products/category/"
+          validate_endpoint "/cart/"
+          validate_endpoint "/orders/my-orders"
+
+          echo ""
+          echo "=============================================="
+          echo "Validation Summary"
+          echo "=============================================="
+
+          if [ "$FAILED" -eq 0 ]; then
+            echo "ALL CRITICAL ENDPOINTS PASSED."
+            exit 0
+          else
+            echo "CRITICAL ENDPOINT VALIDATION FAILED."
+            exit 1
+          fi
+
+      # 13. Rollback on critical endpoint validation failure
       - name: Rollback to previous known-good revision
-        if: steps.smoke_test.outcome == 'failure'
+        if: steps.critical_endpoint_test.outcome == 'failure'
         shell: bash
         run: |
+          set -e
+
           PREVIOUS_REVISION="${{ steps.previous_revision.outputs.revision }}"
 
-          echo "Smoke test failed."
+          echo "Critical endpoint validation failed."
           echo "Rolling back to: $PREVIOUS_REVISION"
+
+          if [ -z "$PREVIOUS_REVISION" ]; then
+            echo "ERROR: Previous known-good revision is empty."
+            exit 1
+          fi
 
           az containerapp ingress traffic set \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
             --revision-weight "$PREVIOUS_REVISION=100"
 
-          echo "Rollback completed successfully."
+          echo "Rollback command completed."
 
-      # 14. Promote only if smoke test passed
+          echo "Verifying traffic assignment..."
+
+          CURRENT_TRAFFIC=$(az containerapp ingress traffic show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[?revisionName=='$PREVIOUS_REVISION'].weight | [0]" \
+            -o tsv)
+
+          if [ "$CURRENT_TRAFFIC" != "100" ]; then
+            echo "ERROR: Rollback verification failed."
+            echo "Expected traffic: 100%"
+            echo "Actual traffic: ${CURRENT_TRAFFIC:-unknown}%"
+            exit 1
+          fi
+
+          echo "Rollback verified successfully."
+          echo "Traffic is 100% on $PREVIOUS_REVISION."
+
+      # 14. Promote only if critical endpoint validation passed
       - name: Promote new revision
-        if: steps.smoke_test.outcome == 'success'
+        if: steps.critical_endpoint_test.outcome == 'success'
         shell: bash
         run: |
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
@@ -221,8 +310,8 @@ jobs:
           echo "New revision:"
           echo "${{ steps.new_revision.outputs.revision }}"
 
-          echo "Smoke test result:"
-          echo "${{ steps.smoke_test.outcome }}"
+          echo "Critical endpoint validation result:"
+          echo "${{ steps.critical_endpoint_test.outcome }}"
 
           echo "All revisions:"
 
@@ -232,11 +321,11 @@ jobs:
             --query "[].{name:name,active:properties.active,traffic:properties.trafficWeight,state:properties.provisioningState}" \
             -o table
 
-      # 16. Fail workflow if smoke test failed
+      # 16. Fail workflow if critical endpoint validation failed
       - name: Mark deployment as failed
-        if: steps.smoke_test.outcome == 'failure'
+        if: steps.critical_endpoint_test.outcome == 'failure'
         shell: bash
         run: |
-          echo "Deployment failed smoke testing."
+          echo "Deployment failed critical endpoint validation."
           echo "Rollback was attempted."
           exit 1
