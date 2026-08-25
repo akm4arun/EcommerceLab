@@ -22,7 +22,7 @@ def get_all_products(search=None, sort="name_asc", page=1, per_page=12, category
     elif sort == "price_desc":
         query = query.order_by(Product.price.desc())
     else:
-        query = query.order_by(Product.name.asc())
+        query = query.order_by(Product.names.asc())
 
     # Return paginated results
     return query.paginate(page=page, per_page=per_page, error_out=False)
