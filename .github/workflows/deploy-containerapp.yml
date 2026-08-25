@@ -198,15 +198,19 @@ jobs:
               --output /dev/null \
               --write-out "%{http_code}" \
               --max-time 30 \
-              --retry 2 \
-              --retry-delay 2 \
-              "$URL")
+              "$URL" 2>/tmp/curl_error)
 
             CURL_EXIT=$?
 
             if [ "$CURL_EXIT" -ne 0 ]; then
               echo "FAIL: $ENDPOINT_PATH"
               echo "curl exit code: $CURL_EXIT"
+
+              if [ -s /tmp/curl_error ]; then
+                echo "curl error:"
+                cat /tmp/curl_error
+              fi
+
               FAILED=1
               return
             fi
