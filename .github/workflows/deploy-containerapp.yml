@@ -187,10 +187,12 @@ jobs:
 
           validate_endpoint() {
             local ENDPOINT_PATH="$1"
+            local EXPECTED_STATUS="$2"
             local URL="https://$NEW_FQDN$ENDPOINT_PATH"
 
             echo ""
             echo "Testing: $URL"
+            echo "Expected HTTP status: $EXPECTED_STATUS"
 
             HTTP_CODE=$(curl \
               --silent \
@@ -215,19 +217,24 @@ jobs:
               return
             fi
 
-            echo "HTTP status: $HTTP_CODE"
+            echo "Actual HTTP status: $HTTP_CODE"
 
-            if [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]]; then
+            if [ "$HTTP_CODE" = "$EXPECTED_STATUS" ]; then
               echo "PASS: $ENDPOINT_PATH"
             else
-              echo "FAIL: $ENDPOINT_PATH returned HTTP $HTTP_CODE"
+              echo "FAIL: $ENDPOINT_PATH"
+              echo "Expected: HTTP $EXPECTED_STATUS"
+              echo "Actual  : HTTP $HTTP_CODE"
               FAILED=1
             fi
           }
 
           # Critical EcommerceLab endpoints
+
           validate_endpoint "/" 200
+
           validate_endpoint "/products/" 200
+
           validate_endpoint "/products/category/electronics" 200
           validate_endpoint "/products/category/fashion" 200
           validate_endpoint "/products/category/books" 200
@@ -236,6 +243,7 @@ jobs:
           validate_endpoint "/products/category/toys" 200
           validate_endpoint "/products/category/beauty" 200
           validate_endpoint "/products/category/automotive" 200
+
           validate_endpoint "/cart/" 302
           validate_endpoint "/orders/my-orders" 302
 
