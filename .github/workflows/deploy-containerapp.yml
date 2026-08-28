@@ -148,28 +148,23 @@ jobs:
             exit 1
           fi
 
-          echo "New revision: $NEW_REVISION"
-          echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
-      
-      
-      # 11A. Capture Container App FQDN
-      - name: Capture application FQDN
-        id: app_fqdn
-        shell: bash
-        run: |
-          APP_FQDN=$(az containerapp show \
+          NEW_FQDN=$(az containerapp revision show \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
-            --query "properties.configuration.ingress.fqdn" \
+            --revision "$NEW_REVISION" \
+            --query "properties.fqdn" \
             -o tsv)
 
-          if [ -z "$APP_FQDN" ]; then
-            echo "ERROR: Could not determine application FQDN."
+          if [ -z "$NEW_FQDN" ]; then
+            echo "ERROR: Could not determine the new revision FQDN."
             exit 1
           fi
 
-          echo "Application FQDN: $APP_FQDN"
-          echo "fqdn=$APP_FQDN" >> "$GITHUB_OUTPUT"
+          echo "New revision: $NEW_REVISION"
+          echo "Revision FQDN: $NEW_FQDN"
+
+          echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
+          echo "fqdn=$NEW_FQDN" >> "$GITHUB_OUTPUT"
 
       # 12. Validate critical endpoints on the new revision
       - name: Validate critical endpoints
@@ -197,6 +192,8 @@ jobs:
             echo "ERROR: Could not determine the new revision FQDN."
             exit 1
           fi
+
+          echo "fqdn=$NEW_FQDN" >> "$GITHUB_OUTPUT"
 
           echo "=============================================="
           echo "Critical Endpoint Validation"
@@ -296,7 +293,7 @@ jobs:
         if: steps.critical_endpoint_test.outcome == 'failure'
         env:
           ICM_API_TOKEN: ${{ secrets.ICM_API_TOKEN }}
-          ICM_API_URL: https://${{ steps.app_fqdn.outputs.fqdn }}/admin/icm/api/incidents
+          ICM_API_URL: https://${{ steps.critical_endpoint_test.outputs.fqdn }}/admin/icm/api/incidents
         shell: bash
         run: |
           set -e
