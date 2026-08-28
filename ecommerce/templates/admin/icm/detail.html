@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ incident.incident_number }}{% endblock %}
+{% block content %}
+<div class="container mt-5"><div class="d-flex justify-content-between align-items-center"><div><h1>{{ incident.incident_number }}</h1><p class="text-muted">{{ incident.title }}</p></div><a class="btn btn-outline-secondary" href="{{ url_for('icm.index') }}">Back to ICM</a></div><hr>
+<div class="row"><div class="col-lg-7">
+<table class="table table-bordered"><tbody>
+<tr><th>Severity</th><td>{{ incident.severity }}</td></tr><tr><th>Status</th><td>{{ incident.status }}</td></tr><tr><th>Application</th><td>{{ incident.application }}</td></tr><tr><th>Environment</th><td>{{ incident.environment }}</td></tr><tr><th>Pipeline</th><td>{{ incident.pipeline_name or '-' }}</td></tr><tr><th>Pipeline Run</th><td>{{ incident.pipeline_run_id or '-' }}</td></tr><tr><th>Commit</th><td><code>{{ incident.commit_sha or '-' }}</code></td></tr><tr><th>Candidate Revision</th><td>{{ incident.candidate_revision or '-' }}</td></tr><tr><th>Previous Revision</th><td>{{ incident.previous_revision or '-' }}</td></tr><tr><th>Failed Endpoints</th><td><pre class="mb-0">{{ incident.failed_endpoints or '-' }}</pre></td></tr><tr><th>Failure Summary</th><td>{{ incident.failure_summary or '-' }}</td></tr>
+</tbody></table></div>
+<div class="col-lg-5"><div class="card"><div class="card-header">Update Incident</div><div class="card-body"><form method="post" action="{{ url_for('icm.update', incident_id=incident.id) }}">
+<label class="form-label">Status</label><select class="form-select mb-3" name="status">{% for x in statuses %}<option {% if incident.status == x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select>
+<label class="form-label">Severity</label><select class="form-select mb-3" name="severity">{% for x in severities %}<option {% if incident.severity == x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select>
+<label class="form-label">RCA Summary</label><textarea class="form-control mb-3" name="rca_summary" rows="5">{{ incident.rca_summary or '' }}</textarea>
+<label class="form-label">Recommended Action</label><textarea class="form-control mb-3" name="recommended_action" rows="5">{{ incident.recommended_action or '' }}</textarea>
+<button class="btn btn-primary">Save Update</button></form></div></div></div></div></div>
+{% endblock %}

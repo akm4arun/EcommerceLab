@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}EcommerceLab ICM{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h1 class="mb-1">EcommerceLab ICM</h1><p class="text-muted mb-0">Incident management portal</p></div>
+    <a class="btn btn-primary" href="{{ url_for('icm.create') }}">Create Incident</a>
+  </div>
+  {% if incidents %}
+  <div class="table-responsive"><table class="table table-bordered table-hover align-middle">
+    <thead><tr><th>ICM</th><th>Title</th><th>Severity</th><th>Status</th><th>Revision</th><th>Created</th><th></th></tr></thead>
+    <tbody>{% for incident in incidents %}<tr>
+      <td><strong>{{ incident.incident_number }}</strong></td><td>{{ incident.title }}</td>
+      <td><span class="badge text-bg-{{ 'danger' if incident.severity in ['Critical','High'] else ('warning' if incident.severity == 'Medium' else 'secondary') }}">{{ incident.severity }}</span></td>
+      <td>{{ incident.status }}</td><td>{{ incident.candidate_revision or '-' }}</td>
+      <td>{{ incident.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
+      <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('icm.detail', incident_id=incident.id) }}">View</a></td>
+    </tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<div class="alert alert-info">No incidents yet.</div>{% endif %}
+</div>
+{% endblock %}
