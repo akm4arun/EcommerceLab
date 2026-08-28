@@ -5,6 +5,8 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+
 env:
   ACR_NAME: ecommercelabacr
   IMAGE_NAME: ecommercelab
@@ -148,6 +150,26 @@ jobs:
 
           echo "New revision: $NEW_REVISION"
           echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
+      
+      
+      # 11A. Capture Container App FQDN
+      - name: Capture application FQDN
+        id: app_fqdn
+        shell: bash
+        run: |
+          APP_FQDN=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "properties.configuration.ingress.fqdn" \
+            -o tsv)
+
+          if [ -z "$APP_FQDN" ]; then
+            echo "ERROR: Could not determine application FQDN."
+            exit 1
+          fi
+
+          echo "Application FQDN: $APP_FQDN"
+          echo "fqdn=$APP_FQDN" >> "$GITHUB_OUTPUT"
 
       # 12. Validate critical endpoints on the new revision
       - name: Validate critical endpoints
@@ -184,6 +206,7 @@ jobs:
           echo "=============================================="
 
           FAILED=0
+          FAILED_ENDPOINTS=""
 
           validate_endpoint() {
             local ENDPOINT_PATH="$1"
@@ -214,6 +237,7 @@ jobs:
               fi
 
               FAILED=1
+              FAILED_ENDPOINTS="${FAILED_ENDPOINTS}${ENDPOINT_PATH},"
               return
             fi
 
@@ -226,6 +250,7 @@ jobs:
               echo "Expected: HTTP $EXPECTED_STATUS"
               echo "Actual  : HTTP $HTTP_CODE"
               FAILED=1
+              FAILED_ENDPOINTS="${FAILED_ENDPOINTS}${ENDPOINT_PATH},"
             fi
           }
 
@@ -252,6 +277,12 @@ jobs:
           echo "Validation Summary"
           echo "=============================================="
 
+          FAILED_ENDPOINTS="${FAILED_ENDPOINTS%,}"
+
+          echo "Failed endpoints: ${FAILED_ENDPOINTS:-none}"
+
+          echo "failed_endpoints=$FAILED_ENDPOINTS" >> "$GITHUB_OUTPUT"
+
           if [ "$FAILED" -eq 0 ]; then
             echo "ALL CRITICAL ENDPOINTS PASSED."
             exit 0
@@ -259,6 +290,62 @@ jobs:
             echo "CRITICAL ENDPOINT VALIDATION FAILED."
             exit 1
           fi
+
+      # 12A. Create ICM automatically when validation fails
+      - name: Create ICM for validation failure
+        if: steps.critical_endpoint_test.outcome == 'failure'
+        env:
+          ICM_API_TOKEN: ${{ secrets.ICM_API_TOKEN }}
+          ICM_API_URL: https://${{ steps.app_fqdn.outputs.fqdn }}/admin/icm/api/incidents
+        shell: bash
+        run: |
+          set -e
+
+          echo "=============================================="
+          echo "Creating ICM"
+          echo "=============================================="
+
+          FAILED_ENDPOINTS="${{ steps.critical_endpoint_test.outputs.failed_endpoints }}"
+          NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
+          PREVIOUS_REVISION="${{ steps.previous_revision.outputs.revision }}"
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "title": "Deployment validation failed for revision ${NEW_REVISION}",
+            "severity": "High",
+            "status": "Open",
+            "application": "${CONTAINER_APP_NAME}",
+            "environment": "Production",
+            "pipeline_name": "${GITHUB_WORKFLOW}",
+            "pipeline_run_id": "${GITHUB_RUN_ID}",
+            "commit_sha": "${GITHUB_SHA}",
+            "candidate_revision": "${NEW_REVISION}",
+            "previous_revision": "${PREVIOUS_REVISION}",
+            "failed_endpoints": "${FAILED_ENDPOINTS}",
+            "failure_summary": "Critical endpoint validation failed after deployment."
+          }
+          EOF
+          )
+
+          RESPONSE=$(curl \
+            --silent \
+            --show-error \
+            --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer ${ICM_API_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "${PAYLOAD}" \
+            "${ICM_API_URL}")
+
+          echo "ICM API response:"
+          echo "$RESPONSE"
+
+          ICM_NUMBER=$(echo "$RESPONSE" | python -c \
+            "import sys,json; print(json.load(sys.stdin).get('incident_number','UNKNOWN'))")
+
+          echo "=============================================="
+          echo "ICM CREATED: $ICM_NUMBER"
+          echo "=============================================="
 
       # 13. Rollback on critical endpoint validation failure
       - name: Rollback to previous known-good revision

@@ -15,6 +15,8 @@ class Config:
         "dev-secret-key-change-in-production"
     )
 
+    ICM_API_TOKEN = os.getenv("ICM_API_TOKEN")
+
     if os.getenv("DATABASE_URL"):
         SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     else:

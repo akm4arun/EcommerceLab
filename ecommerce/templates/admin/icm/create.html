@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Create ICM{% endblock %}
+{% block content %}
+<div class="container mt-5"><div class="row justify-content-center"><div class="col-lg-9">
+<h1>Create Incident</h1><hr>
+<form method="post">
+<div class="row"><div class="col-md-8 mb-3"><label class="form-label">Title *</label><input class="form-control" name="title" value="{{ incident.title if incident else '' }}" required></div>
+<div class="col-md-4 mb-3"><label class="form-label">Severity</label><select class="form-select" name="severity">{% for x in severities %}<option {% if (incident.severity if incident else 'Medium') == x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div></div>
+<div class="row"><div class="col-md-6 mb-3"><label class="form-label">Application</label><input class="form-control" name="application" value="{{ incident.application if incident else 'ecommercelab-app' }}"></div><div class="col-md-6 mb-3"><label class="form-label">Environment</label><input class="form-control" name="environment" value="{{ incident.environment if incident else 'Production' }}"></div></div>
+<div class="row"><div class="col-md-8 mb-3"><label class="form-label">Pipeline</label><input class="form-control" name="pipeline_name"></div><div class="col-md-4 mb-3"><label class="form-label">Pipeline Run ID</label><input class="form-control" name="pipeline_run_id"></div></div>
+<div class="row"><div class="col-md-6 mb-3"><label class="form-label">Commit SHA</label><input class="form-control" name="commit_sha"></div><div class="col-md-3 mb-3"><label class="form-label">Candidate Revision</label><input class="form-control" name="candidate_revision"></div><div class="col-md-3 mb-3"><label class="form-label">Previous Revision</label><input class="form-control" name="previous_revision"></div></div>
+<div class="mb-3"><label class="form-label">Failed Endpoints</label><textarea class="form-control" name="failed_endpoints" rows="3" placeholder="/products/&#10;/products/category/electronics"></textarea></div>
+<div class="mb-3"><label class="form-label">Failure Summary</label><textarea class="form-control" name="failure_summary" rows="4"></textarea></div>
+<a class="btn btn-secondary" href="{{ url_for('icm.index') }}">Cancel</a> <button class="btn btn-primary">Create Incident</button>
+</form></div></div></div>
+{% endblock %}
