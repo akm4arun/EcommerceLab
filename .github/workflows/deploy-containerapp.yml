@@ -28,11 +28,15 @@ jobs:
 
     steps:
 
+      # -----------------------------------------------------------------------
       # 1. Checkout source code
+      # -----------------------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # -----------------------------------------------------------------------
       # 2. Authenticate to Azure using OIDC
+      # -----------------------------------------------------------------------
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -40,7 +44,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      
+      # -----------------------------------------------------------------------
+      # 2A. Verify Azure access
+      # -----------------------------------------------------------------------
       - name: Verify Azure access
         shell: bash
         run: |
@@ -65,22 +71,28 @@ jobs:
           echo "=== Resource Group via ARM ==="
           az rest \
             --method GET \
-            --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourcegroups/rg-ecommercelab-dev?api-version=2021-04-01" \
+            --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourcegroups/${RESOURCE_GROUP}?api-version=2021-04-01" \
             -o json
 
+      # -----------------------------------------------------------------------
       # 3. Setup Python
+      # -----------------------------------------------------------------------
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # -----------------------------------------------------------------------
       # 4. Install application dependencies
+      # -----------------------------------------------------------------------
       - name: Install migration dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # -----------------------------------------------------------------------
       # 5. Run database migrations
+      # -----------------------------------------------------------------------
       - name: Run PostgreSQL migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -88,25 +100,37 @@ jobs:
         run: |
           flask db upgrade
 
+      # -----------------------------------------------------------------------
       # 6. Login to Azure Container Registry
+      # -----------------------------------------------------------------------
       - name: Login to ACR
         run: |
-          az acr login --name $ACR_NAME
+          az acr login --name "$ACR_NAME"
 
+      # -----------------------------------------------------------------------
       # 7. Build Docker image
+      # -----------------------------------------------------------------------
       - name: Build Docker image
         run: |
           docker build \
-            -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} .
+            -t "$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}" .
 
-      # 8. Push image to ACR
+      # -----------------------------------------------------------------------
+      # 8. Push Docker image to ACR
+      # -----------------------------------------------------------------------
       - name: Push Docker image
         run: |
           docker push \
-            $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+            "$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
 
-      # 9. Capture the current production revision
-      - name: Capture previous known-good revision
+      # -----------------------------------------------------------------------
+      # 9. Capture current production revision
+      #
+      # This is informational now. We do NOT blindly roll back to this
+      # revision. If the new revision fails, every active revision is
+      # functionally validated until a healthy recovery revision is found.
+      # -----------------------------------------------------------------------
+      - name: Capture previous production revision
         id: previous_revision
         shell: bash
         run: |
@@ -121,10 +145,12 @@ jobs:
             exit 1
           fi
 
-          echo "Previous known-good revision: $PREVIOUS_REVISION"
+          echo "Previous production revision: $PREVIOUS_REVISION"
           echo "revision=$PREVIOUS_REVISION" >> "$GITHUB_OUTPUT"
 
+      # -----------------------------------------------------------------------
       # 10. Deploy new image
+      # -----------------------------------------------------------------------
       - name: Deploy new Container App revision
         run: |
           az containerapp update \
@@ -132,7 +158,9 @@ jobs:
             --resource-group "$RESOURCE_GROUP" \
             --image "$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
 
-      # 11. Capture the newly deployed revision
+      # -----------------------------------------------------------------------
+      # 11. Capture newly deployed revision and FQDN
+      # -----------------------------------------------------------------------
       - name: Capture new revision
         id: new_revision
         shell: bash
@@ -166,163 +194,276 @@ jobs:
           echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
           echo "fqdn=$NEW_FQDN" >> "$GITHUB_OUTPUT"
 
-      # 12. Validate critical endpoints on the new revision
-      - name: Validate critical endpoints
-        id: critical_endpoint_test
+      # -----------------------------------------------------------------------
+      # 12. Run complete functional validation against the NEW revision
+      # -----------------------------------------------------------------------
+      - name: Validate new revision
+        id: revision_validation
         continue-on-error: true
         shell: bash
         run: |
-          set -u
+          set -uo pipefail
 
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
+          NEW_FQDN="${{ steps.new_revision.outputs.fqdn }}"
 
-          if [ -z "$NEW_REVISION" ]; then
-            echo "ERROR: New revision is empty."
+          if [ -z "$NEW_REVISION" ] || [ -z "$NEW_FQDN" ]; then
+            echo "ERROR: New revision or FQDN is empty."
             exit 1
           fi
-
-          NEW_FQDN=$(az containerapp revision show \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --revision "$NEW_REVISION" \
-            --query "properties.fqdn" \
-            -o tsv)
-
-          if [ -z "$NEW_FQDN" ]; then
-            echo "ERROR: Could not determine the new revision FQDN."
-            exit 1
-          fi
-
-          echo "fqdn=$NEW_FQDN" >> "$GITHUB_OUTPUT"
 
           echo "=============================================="
-          echo "Critical Endpoint Validation"
+          echo "Full Functional Validation"
           echo "=============================================="
           echo "Revision : $NEW_REVISION"
           echo "FQDN     : https://$NEW_FQDN"
           echo "=============================================="
 
-          FAILED=0
-          FAILED_ENDPOINTS=""
+          chmod +x ecommerce/scripts/validate_revision.sh
 
-          validate_endpoint() {
-            local ENDPOINT_PATH="$1"
-            local EXPECTED_STATUS="$2"
-            local URL="https://$NEW_FQDN$ENDPOINT_PATH"
+          VALIDATION_OUTPUT=$(mktemp)
 
-            echo ""
-            echo "Testing: $URL"
-            echo "Expected HTTP status: $EXPECTED_STATUS"
+          ecommerce/scripts/validate_revision.sh "https://$NEW_FQDN" \
+            2>&1 | tee "$VALIDATION_OUTPUT"
 
-            HTTP_CODE=$(curl \
-              --silent \
-              --show-error \
-              --output /dev/null \
-              --write-out "%{http_code}" \
-              --max-time 30 \
-              "$URL" 2>/tmp/curl_error)
+          VALIDATION_RC=${PIPESTATUS[0]}
 
-            CURL_EXIT=$?
+          FAILED_CHECKS=$(grep '^ - ' "$VALIDATION_OUTPUT" \
+            | sed 's/^ - //' \
+            | paste -sd ',' - || true)
 
-            if [ "$CURL_EXIT" -ne 0 ]; then
-              echo "FAIL: $ENDPOINT_PATH"
-              echo "curl exit code: $CURL_EXIT"
-
-              if [ -s /tmp/curl_error ]; then
-                echo "curl error:"
-                cat /tmp/curl_error
-              fi
-
-              FAILED=1
-              FAILED_ENDPOINTS="${FAILED_ENDPOINTS}${ENDPOINT_PATH},"
-              return
-            fi
-
-            echo "Actual HTTP status: $HTTP_CODE"
-
-            if [ "$HTTP_CODE" = "$EXPECTED_STATUS" ]; then
-              echo "PASS: $ENDPOINT_PATH"
-            else
-              echo "FAIL: $ENDPOINT_PATH"
-              echo "Expected: HTTP $EXPECTED_STATUS"
-              echo "Actual  : HTTP $HTTP_CODE"
-              FAILED=1
-              FAILED_ENDPOINTS="${FAILED_ENDPOINTS}${ENDPOINT_PATH},"
-            fi
-          }
-
-          # Critical EcommerceLab endpoints
-
-          validate_endpoint "/" 200
-
-          validate_endpoint "/products/" 200
-
-          validate_endpoint "/products/category/electronics" 200
-          validate_endpoint "/products/category/fashion" 200
-          validate_endpoint "/products/category/books" 200
-          validate_endpoint "/products/category/home-kitchen" 200
-          validate_endpoint "/products/category/sports" 200
-          validate_endpoint "/products/category/toys" 200
-          validate_endpoint "/products/category/beauty" 200
-          validate_endpoint "/products/category/automotive" 200
-
-          validate_endpoint "/cart/" 302
-          validate_endpoint "/orders/my-orders" 302
+          echo "failed_checks=$FAILED_CHECKS" >> "$GITHUB_OUTPUT"
 
           echo ""
-          echo "=============================================="
-          echo "Validation Summary"
-          echo "=============================================="
+          echo "Validation exit code: $VALIDATION_RC"
+          echo "Failed checks: ${FAILED_CHECKS:-none}"
 
-          FAILED_ENDPOINTS="${FAILED_ENDPOINTS%,}"
+          rm -f "$VALIDATION_OUTPUT"
 
-          echo "Failed endpoints: ${FAILED_ENDPOINTS:-none}"
-
-          echo "failed_endpoints=$FAILED_ENDPOINTS" >> "$GITHUB_OUTPUT"
-
-          if [ "$FAILED" -eq 0 ]; then
-            echo "ALL CRITICAL ENDPOINTS PASSED."
+          if [ "$VALIDATION_RC" -eq 0 ]; then
+            echo "result=success" >> "$GITHUB_OUTPUT"
+            echo "New revision passed full functional validation."
             exit 0
-          else
-            echo "CRITICAL ENDPOINT VALIDATION FAILED."
+          fi
+
+          echo "result=failure" >> "$GITHUB_OUTPUT"
+          echo "New revision FAILED full functional validation."
+
+          exit 1
+
+      # -----------------------------------------------------------------------
+      # 13. Find the newest ACTIVE revision that passes the COMPLETE
+      #     functional validation suite.
+      #
+      # IMPORTANT:
+      # Azure health state alone is NOT considered sufficient.
+      # Every recovery candidate is tested with validate_revision.sh.
+      # -----------------------------------------------------------------------
+      - name: Find healthy recovery revision
+        id: recovery_revision
+        if: steps.revision_validation.outcome == 'failure'
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
+
+          echo "=============================================="
+          echo "Searching for healthy recovery revision"
+          echo "=============================================="
+          echo "Failed candidate: $NEW_REVISION"
+
+          chmod +x ecommerce/scripts/validate_revision.sh
+
+          echo ""
+          echo "Available revisions:"
+
+          az containerapp revision list \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[].{name:name,state:properties.runningState,health:properties.healthState,traffic:properties.trafficWeight,active:properties.active,created:properties.createdTime}" \
+            -o table
+
+          echo ""
+          echo "Building recovery candidate list..."
+
+          # Get active revisions newest first.
+          #
+          # We intentionally do not rely only on Azure health state.
+          # The complete functional validator is the final authority.
+          CANDIDATES=$(az containerapp revision list \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[?name != '$NEW_REVISION' && properties.active == \`true\`] | sort_by(@, &properties.createdTime) | reverse(@) | [].name" \
+            -o tsv)
+
+          if [ -z "$CANDIDATES" ]; then
+            echo "ERROR: No active recovery candidates found."
             exit 1
           fi
 
-      # 12A. Create ICM automatically when validation fails
-      - name: Create ICM for validation failure
-        if: steps.critical_endpoint_test.outcome == 'failure'
-        env:
-          ICM_API_TOKEN: ${{ secrets.ICM_API_TOKEN }}
-          ICM_API_URL: https://${{ steps.critical_endpoint_test.outputs.fqdn }}/admin/icm/api/incidents
+          FOUND_REVISION=""
+          FOUND_FQDN=""
+
+          while IFS= read -r CANDIDATE; do
+            [ -z "$CANDIDATE" ] && continue
+
+            echo ""
+            echo "=============================================="
+            echo "Testing recovery candidate: $CANDIDATE"
+            echo "=============================================="
+
+            CANDIDATE_FQDN=$(az containerapp revision show \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --revision "$CANDIDATE" \
+              --query "properties.fqdn" \
+              -o tsv)
+
+            if [ -z "$CANDIDATE_FQDN" ]; then
+              echo "WARNING: Could not determine FQDN for $CANDIDATE."
+              continue
+            fi
+
+            echo "FQDN: https://$CANDIDATE_FQDN"
+
+            if ecommerce/scripts/validate_revision.sh "https://$CANDIDATE_FQDN"; then
+              echo ""
+              echo "PASS: Recovery candidate $CANDIDATE passed full functional validation."
+
+              FOUND_REVISION="$CANDIDATE"
+              FOUND_FQDN="$CANDIDATE_FQDN"
+
+              break
+            fi
+
+            echo ""
+            echo "FAIL: Recovery candidate $CANDIDATE failed validation."
+
+          done <<< "$CANDIDATES"
+
+          if [ -z "$FOUND_REVISION" ]; then
+            echo ""
+            echo "ERROR: No healthy recovery revision could be found."
+            exit 1
+          fi
+
+          echo ""
+          echo "=============================================="
+          echo "Healthy Recovery Revision Found"
+          echo "=============================================="
+          echo "Recovery revision: $FOUND_REVISION"
+          echo "Recovery FQDN     : $FOUND_FQDN"
+
+          echo "revision=$FOUND_REVISION" >> "$GITHUB_OUTPUT"
+          echo "fqdn=$FOUND_FQDN" >> "$GITHUB_OUTPUT"
+
+      # -----------------------------------------------------------------------
+      # 14. Roll back to the FIRST revision that passed full validation
+      # -----------------------------------------------------------------------
+      - name: Roll back to healthy recovery revision
+        id: rollback
+        if: steps.revision_validation.outcome == 'failure' && steps.recovery_revision.outcome == 'success'
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
+
+          RECOVERY_REVISION="${{ steps.recovery_revision.outputs.revision }}"
+
+          if [ -z "$RECOVERY_REVISION" ]; then
+            echo "ERROR: Recovery revision is empty."
+            exit 1
+          fi
+
+          echo "=============================================="
+          echo "Rolling Back"
+          echo "=============================================="
+          echo "Recovery revision: $RECOVERY_REVISION"
+
+          az containerapp ingress traffic set \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision-weight "$RECOVERY_REVISION=100"
+
+          echo ""
+          echo "Verifying traffic assignment..."
+
+          CURRENT_TRAFFIC=$(az containerapp ingress traffic show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[?revisionName=='$RECOVERY_REVISION'].weight | [0]" \
+            -o tsv)
+
+          if [ "$CURRENT_TRAFFIC" != "100" ]; then
+            echo "ERROR: Rollback verification failed."
+            echo "Expected traffic: 100%"
+            echo "Actual traffic: ${CURRENT_TRAFFIC:-unknown}%"
+            exit 1
+          fi
+
+          echo ""
+          echo "Rollback verified successfully."
+          echo "Traffic is 100% on $RECOVERY_REVISION."
+
+      # -----------------------------------------------------------------------
+      # 15. Create ICM after recovery decision
+      #
+      # This is deliberately AFTER recovery selection so the ICM contains
+      # the actual healthy recovery revision.
+      # -----------------------------------------------------------------------
+      - name: Create ICM for validation failure
+        id: create_icm
+        if: steps.revision_validation.outcome == 'failure'
+        env:
+          ICM_API_TOKEN: ${{ secrets.ICM_API_TOKEN }}
+          ICM_API_URL: https://${{ steps.new_revision.outputs.fqdn }}/admin/icm/api/incidents
+        shell: bash
+        run: |
+          set -euo pipefail
 
           echo "=============================================="
           echo "Creating ICM"
           echo "=============================================="
 
-          FAILED_ENDPOINTS="${{ steps.critical_endpoint_test.outputs.failed_endpoints }}"
+          FAILED_CHECKS="${{ steps.revision_validation.outputs.failed_checks }}"
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
           PREVIOUS_REVISION="${{ steps.previous_revision.outputs.revision }}"
+          RECOVERY_REVISION="${{ steps.recovery_revision.outputs.revision }}"
 
-          PAYLOAD=$(cat <<EOF
-          {
-            "title": "Deployment validation failed for revision ${NEW_REVISION}",
-            "severity": "High",
-            "status": "Open",
-            "application": "${CONTAINER_APP_NAME}",
-            "environment": "Production",
-            "pipeline_name": "${GITHUB_WORKFLOW}",
-            "pipeline_run_id": "${GITHUB_RUN_ID}",
-            "commit_sha": "${GITHUB_SHA}",
-            "candidate_revision": "${NEW_REVISION}",
-            "previous_revision": "${PREVIOUS_REVISION}",
-            "failed_endpoints": "${FAILED_ENDPOINTS}",
-            "failure_summary": "Critical endpoint validation failed after deployment."
+          if [ -z "$RECOVERY_REVISION" ]; then
+            RECOVERY_REVISION="NONE_FOUND"
+          fi
+
+          echo "Candidate revision : $NEW_REVISION"
+          echo "Previous revision  : $PREVIOUS_REVISION"
+          echo "Recovery revision  : $RECOVERY_REVISION"
+          echo "Failed checks      : ${FAILED_CHECKS:-unknown}"
+
+          # Build JSON safely using Python so special characters in values
+          # cannot break the request payload.
+          PAYLOAD=$(python - <<PY
+          import json
+
+          payload = {
+              "title": f"Deployment validation failed for revision {"""${NEW_REVISION}"""}",
+              "severity": "High",
+              "status": "Open",
+              "application": """${CONTAINER_APP_NAME@Q}""",
+              "environment": "Production",
+              "pipeline_name": """${GITHUB_WORKFLOW@Q}""",
+              "pipeline_run_id": """${GITHUB_RUN_ID@Q}""",
+              "commit_sha": """${GITHUB_SHA@Q}""",
+              "candidate_revision": """${NEW_REVISION@Q}""",
+              "previous_revision": """${PREVIOUS_REVISION@Q}""",
+              "failed_endpoints": """${FAILED_CHECKS@Q}""",
+              "failure_summary": "Full functional validation failed after deployment.",
+              "rca_summary": "Deployment validation failed for the candidate revision. One or more functional application checks failed.",
+              "recommended_action": f"Traffic was automatically routed to recovery revision {"""${RECOVERY_REVISION}"""} after that revision passed the complete functional validation suite."
           }
-          EOF
-          )
+
+          print(json.dumps(payload))
+          PY
+                    )
 
           RESPONSE=$(curl \
             --silent \
@@ -344,91 +485,115 @@ jobs:
           echo "ICM CREATED: $ICM_NUMBER"
           echo "=============================================="
 
-      # 13. Rollback on critical endpoint validation failure
-      - name: Rollback to previous known-good revision
-        if: steps.critical_endpoint_test.outcome == 'failure'
-        shell: bash
-        run: |
-          set -e
-
-          PREVIOUS_REVISION="${{ steps.previous_revision.outputs.revision }}"
-
-          echo "Critical endpoint validation failed."
-          echo "Rolling back to: $PREVIOUS_REVISION"
-
-          if [ -z "$PREVIOUS_REVISION" ]; then
-            echo "ERROR: Previous known-good revision is empty."
-            exit 1
-          fi
-
-          az containerapp ingress traffic set \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --revision-weight "$PREVIOUS_REVISION=100"
-
-          echo "Rollback command completed."
-
-          echo "Verifying traffic assignment..."
-
-          CURRENT_TRAFFIC=$(az containerapp ingress traffic show \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --query "[?revisionName=='$PREVIOUS_REVISION'].weight | [0]" \
-            -o tsv)
-
-          if [ "$CURRENT_TRAFFIC" != "100" ]; then
-            echo "ERROR: Rollback verification failed."
-            echo "Expected traffic: 100%"
-            echo "Actual traffic: ${CURRENT_TRAFFIC:-unknown}%"
-            exit 1
-          fi
-
-          echo "Rollback verified successfully."
-          echo "Traffic is 100% on $PREVIOUS_REVISION."
-
-      # 14. Promote only if critical endpoint validation passed
+      # -----------------------------------------------------------------------
+      # 16. Promote NEW revision only when complete functional validation
+      #     passes.
+      # -----------------------------------------------------------------------
       - name: Promote new revision
-        if: steps.critical_endpoint_test.outcome == 'success'
+        if: steps.revision_validation.outcome == 'success'
         shell: bash
         run: |
+          set -euo pipefail
+
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
 
-          echo "Promoting revision: $NEW_REVISION"
+          echo "=============================================="
+          echo "Promoting New Revision"
+          echo "=============================================="
+          echo "Revision: $NEW_REVISION"
 
           az containerapp ingress traffic set \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
             --revision-weight "$NEW_REVISION=100"
 
-          echo "Revision promoted successfully."
+          echo ""
+          echo "Verifying traffic assignment..."
 
-      # 15. Show evidence
+          CURRENT_TRAFFIC=$(az containerapp ingress traffic show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[?revisionName=='$NEW_REVISION'].weight | [0]" \
+            -o tsv)
+
+          if [ "$CURRENT_TRAFFIC" != "100" ]; then
+            echo "ERROR: New revision promotion verification failed."
+            echo "Expected traffic: 100%"
+            echo "Actual traffic: ${CURRENT_TRAFFIC:-unknown}%"
+            exit 1
+          fi
+
+          echo "New revision promoted successfully."
+          echo "Traffic is 100% on $NEW_REVISION."
+
+      # -----------------------------------------------------------------------
+      # 17. Show deployment evidence
+      # -----------------------------------------------------------------------
       - name: Show deployment revisions
         if: always()
         shell: bash
         run: |
-          echo "Previous known-good revision:"
+          echo "=============================================="
+          echo "DEPLOYMENT EVIDENCE"
+          echo "=============================================="
+
+          echo ""
+          echo "Previous production revision:"
           echo "${{ steps.previous_revision.outputs.revision }}"
 
+          echo ""
           echo "New revision:"
           echo "${{ steps.new_revision.outputs.revision }}"
 
-          echo "Critical endpoint validation result:"
-          echo "${{ steps.critical_endpoint_test.outcome }}"
+          echo ""
+          echo "New revision functional validation result:"
+          echo "${{ steps.revision_validation.outcome }}"
 
+          echo ""
+          echo "Failed functional checks:"
+          echo "${{ steps.revision_validation.outputs.failed_checks }}"
+
+          echo ""
+          echo "Selected recovery revision:"
+          echo "${{ steps.recovery_revision.outputs.revision }}"
+
+          echo ""
+          echo "Rollback result:"
+          echo "${{ steps.rollback.outcome }}"
+
+          echo ""
           echo "All revisions:"
-
           az containerapp revision list \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
-            --query "[].{name:name,active:properties.active,traffic:properties.trafficWeight,state:properties.provisioningState}" \
+            --query "[].{name:name,active:properties.active,traffic:properties.trafficWeight,state:properties.runningState,health:properties.healthState,created:properties.createdTime}" \
             -o table
 
-      # 16. Fail workflow if critical endpoint validation failed
+      # -----------------------------------------------------------------------
+      # 18. Fail workflow if the NEW revision failed validation
+      #
+      # This happens AFTER rollback/ICM processing so the operational recovery
+      # actions are completed before GitHub marks the deployment failed.
+      # -----------------------------------------------------------------------
       - name: Mark deployment as failed
-        if: steps.critical_endpoint_test.outcome == 'failure'
+        if: steps.revision_validation.outcome == 'failure'
         shell: bash
         run: |
-          echo "Deployment failed critical endpoint validation."
-          echo "Rollback was attempted."
+          echo "=============================================="
+          echo "DEPLOYMENT FAILED"
+          echo "=============================================="
+          echo "The newly deployed revision failed full functional validation."
+
+          if [ "${{ steps.recovery_revision.outcome }}" = "success" ]; then
+            echo "A healthy recovery revision was found."
+            echo "Recovery revision: ${{ steps.recovery_revision.outputs.revision }}"
+            echo "Traffic was routed to the healthy recovery revision."
+          else
+            echo "WARNING: No healthy recovery revision was found."
+          fi
+
+          echo ""
+          echo "Failed checks:"
+          echo "${{ steps.revision_validation.outputs.failed_checks }}"
+
           exit 1
