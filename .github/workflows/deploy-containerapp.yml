@@ -439,26 +439,51 @@ jobs:
           echo "Recovery revision  : $RECOVERY_REVISION"
           echo "Failed checks      : ${FAILED_CHECKS:-unknown}"
 
-          # Build JSON safely using Python so special characters in values
-          # cannot break the request payload.
-          PAYLOAD=$(python - <<PY
+          # Build JSON safely using Python and environment variables.
+          # This avoids shell/Python quoting problems when values contain
+          # special characters.
+          export NEW_REVISION
+          export PREVIOUS_REVISION
+          export RECOVERY_REVISION
+          export FAILED_CHECKS
+          export CONTAINER_APP_NAME
+          export GITHUB_WORKFLOW
+          export GITHUB_RUN_ID
+          export GITHUB_SHA
+
+          PAYLOAD=$(python - <<'PY'
           import json
+          import os
+
+          new_revision = os.environ["NEW_REVISION"]
+          previous_revision = os.environ["PREVIOUS_REVISION"]
+          recovery_revision = os.environ["RECOVERY_REVISION"]
+          failed_checks = os.environ["FAILED_CHECKS"]
 
           payload = {
-              "title": f"Deployment validation failed for revision {"""${NEW_REVISION}"""}",
+              "title": f"Deployment validation failed for revision {new_revision}",
               "severity": "High",
               "status": "Open",
-              "application": """${CONTAINER_APP_NAME@Q}""",
+              "application": os.environ["CONTAINER_APP_NAME"],
               "environment": "Production",
-              "pipeline_name": """${GITHUB_WORKFLOW@Q}""",
-              "pipeline_run_id": """${GITHUB_RUN_ID@Q}""",
-              "commit_sha": """${GITHUB_SHA@Q}""",
-              "candidate_revision": """${NEW_REVISION@Q}""",
-              "previous_revision": """${PREVIOUS_REVISION@Q}""",
-              "failed_endpoints": """${FAILED_CHECKS@Q}""",
-              "failure_summary": "Full functional validation failed after deployment.",
-              "rca_summary": "Deployment validation failed for the candidate revision. One or more functional application checks failed.",
-              "recommended_action": f"Traffic was automatically routed to recovery revision {"""${RECOVERY_REVISION}"""} after that revision passed the complete functional validation suite."
+              "pipeline_name": os.environ["GITHUB_WORKFLOW"],
+              "pipeline_run_id": os.environ["GITHUB_RUN_ID"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "candidate_revision": new_revision,
+              "previous_revision": previous_revision,
+              "failed_endpoints": failed_checks,
+              "failure_summary": (
+                  "Full functional validation failed after deployment."
+              ),
+              "rca_summary": (
+                  "Deployment validation failed for the candidate revision. "
+                  "One or more functional application checks failed."
+              ),
+              "recommended_action": (
+                  f"Traffic was automatically routed to recovery revision "
+                  f"{recovery_revision} after that revision passed the complete "
+                  f"functional validation suite."
+              ),
           }
 
           print(json.dumps(payload))
