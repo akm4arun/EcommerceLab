@@ -504,10 +504,27 @@ jobs:
           echo "$RESPONSE"
 
           ICM_NUMBER=$(echo "$RESPONSE" | python -c \
-            "import sys,json; print(json.load(sys.stdin).get('incident_number','UNKNOWN'))")
+          "import sys,json; print(json.load(sys.stdin).get('incident_number','UNKNOWN'))")
+
+          ICM_ID=$(echo "$RESPONSE" | python -c \
+            "import sys,json; print(json.load(sys.stdin).get('incident_id','UNKNOWN'))")
+
+          if [ -z "$ICM_ID" ] || [ "$ICM_ID" = "UNKNOWN" ]; then
+            echo "ERROR: ICM ID was not returned by the ICM API."
+            exit 1
+          fi
+
+          if [ -z "$ICM_NUMBER" ] || [ "$ICM_NUMBER" = "UNKNOWN" ]; then
+            echo "ERROR: ICM number was not returned by the ICM API."
+            exit 1
+          fi
+
+          echo "icm_id=${ICM_ID}" >> "$GITHUB_OUTPUT"
+          echo "icm_number=${ICM_NUMBER}" >> "$GITHUB_OUTPUT"
 
           echo "=============================================="
           echo "ICM CREATED: $ICM_NUMBER"
+          echo "ICM ID     : $ICM_ID"
           echo "=============================================="
 
       # -----------------------------------------------------------------------
