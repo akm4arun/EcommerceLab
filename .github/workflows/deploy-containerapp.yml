@@ -527,6 +527,24 @@ jobs:
           echo "ICM ID     : $ICM_ID"
           echo "=============================================="
 
+          echo "=============================================="
+          echo "Verifying ICM GET API"
+          echo "=============================================="
+
+          GET_RESPONSE=$(curl \
+            --silent \
+            --show-error \
+            --fail-with-body \
+            --request GET \
+            --header "Authorization: Bearer ${ICM_API_TOKEN}" \
+            --header "Accept: application/json" \
+            "${ICM_API_URL}/${ICM_ID}")
+
+          echo "ICM GET API response:"
+          echo "$GET_RESPONSE"
+
+          echo "ICM GET API verification succeeded."
+
       # -----------------------------------------------------------------------
       # 16. Promote NEW revision only when complete functional validation
       #     passes.
