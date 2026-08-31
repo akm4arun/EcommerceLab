@@ -94,6 +94,109 @@ def create_api_incident():
         "status": incident.status
     }), 201
 
+@icm_bp.route("/api/incidents/<int:incident_id>", methods=["GET"])
+def get_api_incident(incident_id):
+    auth_error = _api_token_required()
+
+    if auth_error:
+        return auth_error
+
+    incident = Incident.query.get(incident_id)
+
+    if incident is None:
+        return jsonify({
+            "error": "Incident not found."
+        }), 404
+
+    return jsonify({
+        "incident_id": incident.id,
+        "incident_number": incident.incident_number,
+        "title": incident.title,
+        "severity": incident.severity,
+        "status": incident.status,
+        "application": incident.application,
+        "environment": incident.environment,
+        "pipeline_name": incident.pipeline_name,
+        "pipeline_run_id": incident.pipeline_run_id,
+        "commit_sha": incident.commit_sha,
+        "candidate_revision": incident.candidate_revision,
+        "previous_revision": incident.previous_revision,
+        "failed_endpoints": incident.failed_endpoints,
+        "failure_summary": incident.failure_summary,
+        "rca_summary": incident.rca_summary,
+        "recommended_action": incident.recommended_action,
+        "created_at": (
+            incident.created_at.isoformat()
+            if incident.created_at
+            else None
+        ),
+        "updated_at": (
+            incident.updated_at.isoformat()
+            if getattr(incident, "updated_at", None)
+            else None
+        ),
+    }), 200
+
+@icm_bp.route("/api/incidents/<int:incident_id>", methods=["PATCH"])
+def update_api_incident(incident_id):
+    """
+    Machine-to-machine ICM update endpoint.
+
+    Used by trusted automation such as the GitHub Actions deployment
+    pipeline after SRE analysis has completed.
+
+    Authentication uses the same ICM API bearer token as incident creation.
+    """
+
+    auth_error = _api_token_required()
+
+    if auth_error:
+        return auth_error
+
+    incident = Incident.query.get_or_404(incident_id)
+
+    data = request.get_json(silent=True) or {}
+
+    if "status" in data:
+        status = data["status"]
+
+        if status not in STATUSES:
+            return jsonify({
+                "error": f"Invalid status: {status}"
+            }), 400
+
+        incident.status = status
+
+    if "severity" in data:
+        severity = data["severity"]
+
+        if severity not in SEVERITIES:
+            return jsonify({
+                "error": f"Invalid severity: {severity}"
+            }), 400
+
+        incident.severity = severity
+
+    if "rca_summary" in data:
+        incident.rca_summary = (
+            str(data["rca_summary"]).strip() or None
+        )
+
+    if "recommended_action" in data:
+        incident.recommended_action = (
+            str(data["recommended_action"]).strip() or None
+        )
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Incident updated successfully.",
+        "incident_id": incident.id,
+        "incident_number": incident.incident_number,
+        "status": incident.status,
+        "severity": incident.severity,
+    }), 200
+
 @icm_bp.route("/")
 @admin_required
 def index():
