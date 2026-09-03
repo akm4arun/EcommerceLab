@@ -22,6 +22,24 @@ class Incident(db.Model):
     failure_summary = db.Column(db.Text, nullable=True)
     rca_summary = db.Column(db.Text, nullable=True)
     recommended_action = db.Column(db.Text, nullable=True)
+    # Phase 8B.2 - Remediation Decision
+    remediation_change_type = db.Column(db.String(50), nullable=True)
+    remediation_action = db.Column(db.Text, nullable=True)
+    remediation_target = db.Column(db.Text, nullable=True)
+    remediation_preconditions = db.Column(db.Text, nullable=True)
+    remediation_dependencies = db.Column(db.Text, nullable=True)
+    remediation_safety_checks = db.Column(db.Text, nullable=True)
+
+    # Phase 8B.2 - Approval
+    approval_status = db.Column(db.String(30), nullable=True)
+    approval_reference = db.Column(db.String(100), nullable=True)
+    approved_by = db.Column(db.String(200), nullable=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
+
+    # Phase 8B.3 - Execution
+    execution_status = db.Column(db.String(40), nullable=True)
+    execution_evidence = db.Column(db.Text, nullable=True)
+    executed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(
         db.DateTime,
