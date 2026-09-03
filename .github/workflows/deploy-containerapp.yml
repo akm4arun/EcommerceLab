@@ -252,8 +252,12 @@ jobs:
           exit 1
 
       # -----------------------------------------------------------------------
-      # 13. Find the newest ACTIVE revision that passes the COMPLETE
-      #     functional validation suite.
+      # 13. Find healthy recovery revision
+      #
+      # Recovery priority:
+      #   1. Previous production revision - validate this FIRST.
+      #   2. If previous production revision fails, test other active
+      #      revisions as fallback candidates.
       #
       # IMPORTANT:
       # Azure health state alone is NOT considered sufficient.
@@ -267,11 +271,18 @@ jobs:
           set -uo pipefail
 
           NEW_REVISION="${{ steps.new_revision.outputs.revision }}"
+          PREVIOUS_REVISION="${{ steps.previous_revision.outputs.revision }}"
 
           echo "=============================================="
           echo "Searching for healthy recovery revision"
           echo "=============================================="
-          echo "Failed candidate: $NEW_REVISION"
+          echo "Failed candidate       : $NEW_REVISION"
+          echo "Previous production    : $PREVIOUS_REVISION"
+
+          if [ -z "$PREVIOUS_REVISION" ]; then
+            echo "ERROR: Previous production revision is empty."
+            exit 1
+          fi
 
           chmod +x ecommerce/scripts/validate_revision.sh
 
@@ -284,21 +295,63 @@ jobs:
             --query "[].{name:name,state:properties.runningState,health:properties.healthState,traffic:properties.trafficWeight,active:properties.active,created:properties.createdTime}" \
             -o table
 
-          echo ""
-          echo "Building recovery candidate list..."
-
-          # Get active revisions newest first.
+          # -------------------------------------------------------------------
+          # First priority: previous production revision.
           #
-          # We intentionally do not rely only on Azure health state.
-          # The complete functional validator is the final authority.
-          CANDIDATES=$(az containerapp revision list \
+          # This is the revision that was serving 100% production traffic
+          # immediately before the failed deployment.
+          # -------------------------------------------------------------------
+          echo ""
+          echo "=============================================="
+          echo "Priority recovery candidate"
+          echo "=============================================="
+          echo "Testing previous production revision: $PREVIOUS_REVISION"
+
+          PREVIOUS_FQDN=$(az containerapp revision show \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
-            --query "[?name != '$NEW_REVISION' && properties.active == \`true\`] | sort_by(@, &properties.createdTime) | reverse(@) | [].name" \
+            --revision "$PREVIOUS_REVISION" \
+            --query "properties.fqdn" \
             -o tsv)
 
-          if [ -z "$CANDIDATES" ]; then
-            echo "ERROR: No active recovery candidates found."
+          if [ -n "$PREVIOUS_FQDN" ]; then
+            echo "FQDN: https://$PREVIOUS_FQDN"
+
+            if ecommerce/scripts/validate_revision.sh "https://$PREVIOUS_FQDN"; then
+              echo ""
+              echo "PASS: Previous production revision passed full functional validation."
+              echo "Using $PREVIOUS_REVISION as the recovery revision."
+
+              echo "revision=$PREVIOUS_REVISION" >> "$GITHUB_OUTPUT"
+              echo "fqdn=$PREVIOUS_FQDN" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            echo ""
+            echo "FAIL: Previous production revision failed validation."
+          else
+            echo "WARNING: Could not determine FQDN for $PREVIOUS_REVISION."
+          fi
+
+          # -------------------------------------------------------------------
+          # Fallback: test other active revisions.
+          #
+          # The previous production revision has already been tested above,
+          # so it is excluded here.
+          # -------------------------------------------------------------------
+          echo ""
+          echo "=============================================="
+          echo "Building fallback recovery candidate list"
+          echo "=============================================="
+
+          FALLBACK_CANDIDATES=$(az containerapp revision list \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[?name != '$NEW_REVISION' && name != '$PREVIOUS_REVISION' && properties.active == \`true\`] | sort_by(@, &properties.createdTime) | reverse(@) | [].name" \
+            -o tsv)
+
+          if [ -z "$FALLBACK_CANDIDATES" ]; then
+            echo "ERROR: Previous production revision failed and no fallback candidates were found."
             exit 1
           fi
 
@@ -310,7 +363,7 @@ jobs:
 
             echo ""
             echo "=============================================="
-            echo "Testing recovery candidate: $CANDIDATE"
+            echo "Testing fallback recovery candidate: $CANDIDATE"
             echo "=============================================="
 
             CANDIDATE_FQDN=$(az containerapp revision show \
@@ -329,7 +382,7 @@ jobs:
 
             if ecommerce/scripts/validate_revision.sh "https://$CANDIDATE_FQDN"; then
               echo ""
-              echo "PASS: Recovery candidate $CANDIDATE passed full functional validation."
+              echo "PASS: Fallback recovery candidate $CANDIDATE passed full functional validation."
 
               FOUND_REVISION="$CANDIDATE"
               FOUND_FQDN="$CANDIDATE_FQDN"
@@ -338,9 +391,9 @@ jobs:
             fi
 
             echo ""
-            echo "FAIL: Recovery candidate $CANDIDATE failed validation."
+            echo "FAIL: Fallback recovery candidate $CANDIDATE failed validation."
 
-          done <<< "$CANDIDATES"
+          done <<< "$FALLBACK_CANDIDATES"
 
           if [ -z "$FOUND_REVISION" ]; then
             echo ""
@@ -354,6 +407,7 @@ jobs:
           echo "=============================================="
           echo "Recovery revision: $FOUND_REVISION"
           echo "Recovery FQDN     : $FOUND_FQDN"
+          echo "Recovery source   : fallback candidate"
 
           echo "revision=$FOUND_REVISION" >> "$GITHUB_OUTPUT"
           echo "fqdn=$FOUND_FQDN" >> "$GITHUB_OUTPUT"
