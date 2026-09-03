@@ -124,16 +124,17 @@ jobs:
             "$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
 
       # -----------------------------------------------------------------------
-      # 9. Capture current production revision
+      # 9. Capture current production revision and production App FQDN
       #
-      # This is informational now. We do NOT blindly roll back to this
-      # revision. If the new revision fails, every active revision is
-      # functionally validated until a healthy recovery revision is found.
+      # The revision with 100% traffic is the previous production revision.
+      # The App FQDN is used to validate the actual production ingress path.
       # -----------------------------------------------------------------------
       - name: Capture previous production revision
         id: previous_revision
         shell: bash
         run: |
+          set -euo pipefail
+
           PREVIOUS_REVISION=$(az containerapp revision list \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
@@ -145,8 +146,22 @@ jobs:
             exit 1
           fi
 
+          PRODUCTION_FQDN=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "properties.configuration.ingress.fqdn" \
+            -o tsv)
+
+          if [ -z "$PRODUCTION_FQDN" ]; then
+            echo "ERROR: Could not determine the production App FQDN."
+            exit 1
+          fi
+
           echo "Previous production revision: $PREVIOUS_REVISION"
+          echo "Production App FQDN: $PRODUCTION_FQDN"
+
           echo "revision=$PREVIOUS_REVISION" >> "$GITHUB_OUTPUT"
+          echo "fqdn=$PRODUCTION_FQDN" >> "$GITHUB_OUTPUT"
 
       # -----------------------------------------------------------------------
       # 10. Deploy new image
@@ -307,23 +322,18 @@ jobs:
           echo "=============================================="
           echo "Testing previous production revision: $PREVIOUS_REVISION"
 
-          PREVIOUS_FQDN=$(az containerapp revision show \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --revision "$PREVIOUS_REVISION" \
-            --query "properties.fqdn" \
-            -o tsv)
+          PRODUCTION_FQDN="${{ steps.previous_revision.outputs.fqdn }}"
 
-          if [ -n "$PREVIOUS_FQDN" ]; then
-            echo "FQDN: https://$PREVIOUS_FQDN"
+          if [ -n "$PRODUCTION_FQDN" ]; then
+            echo "Production App FQDN: https://$PRODUCTION_FQDN"
 
-            if ecommerce/scripts/validate_revision.sh "https://$PREVIOUS_FQDN"; then
+            if ecommerce/scripts/validate_revision.sh "https://$PRODUCTION_FQDN"; then
               echo ""
               echo "PASS: Previous production revision passed full functional validation."
               echo "Using $PREVIOUS_REVISION as the recovery revision."
 
               echo "revision=$PREVIOUS_REVISION" >> "$GITHUB_OUTPUT"
-              echo "fqdn=$PREVIOUS_FQDN" >> "$GITHUB_OUTPUT"
+              echo "fqdn=$PRODUCTION_FQDN" >> "$GITHUB_OUTPUT"
               exit 0
             fi
 
