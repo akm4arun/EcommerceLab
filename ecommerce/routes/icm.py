@@ -1,4 +1,5 @@
 import hmac
+from datetime import datetime
 
 from flask import (
     Blueprint,
@@ -20,6 +21,26 @@ icm_bp = Blueprint("icm", __name__, url_prefix="/admin/icm")
 
 SEVERITIES = ["Low", "Medium", "High", "Critical"]
 STATUSES = ["Open", "Investigating", "RCA Confirmed", "Remediation Pending", "Resolved"]
+
+REMEDIATION_CHANGE_TYPES = [
+    "No action",
+    "Configuration change",
+    "Rollback",
+    "Redeploy",
+    "Code fix",
+    "Data correction",
+    "Pipeline/workflow correction",
+    "Validation/test correction",
+    "Dependency correction",
+    "Infrastructure correction",
+    "Other",
+]
+
+APPROVAL_STATUSES = [
+    "PENDING",
+    "APPROVED",
+    "REJECTED",
+]
 
 
 def _next_incident_number():
@@ -125,6 +146,34 @@ def get_api_incident(incident_id):
         "failure_summary": incident.failure_summary,
         "rca_summary": incident.rca_summary,
         "recommended_action": incident.recommended_action,
+
+        # Phase 8B.2 - Remediation Decision
+        "remediation_change_type": incident.remediation_change_type,
+        "remediation_action": incident.remediation_action,
+        "remediation_target": incident.remediation_target,
+        "remediation_preconditions": incident.remediation_preconditions,
+        "remediation_dependencies": incident.remediation_dependencies,
+        "remediation_safety_checks": incident.remediation_safety_checks,
+
+        # Phase 8B.2 - Approval
+        "approval_status": incident.approval_status,
+        "approval_reference": incident.approval_reference,
+        "approved_by": incident.approved_by,
+        "approved_at": (
+            incident.approved_at.isoformat()
+            if incident.approved_at
+            else None
+        ),
+
+        # Phase 8B.3 - Execution
+        "execution_status": incident.execution_status,
+        "execution_evidence": incident.execution_evidence,
+        "executed_at": (
+            incident.executed_at.isoformat()
+            if incident.executed_at
+            else None
+        ),
+
         "created_at": (
             incident.created_at.isoformat()
             if incident.created_at
@@ -142,10 +191,16 @@ def update_api_incident(incident_id):
     """
     Machine-to-machine ICM update endpoint.
 
-    Used by trusted automation such as the GitHub Actions deployment
-    pipeline after SRE analysis has completed.
+    Supports:
+    - Incident metadata updates
+    - RCA updates
+    - Phase 8B.2 remediation decision
 
-    Authentication uses the same ICM API bearer token as incident creation.
+    Approval metadata is read-only for automation.
+    Human approval is handled through a separate trust boundary.
+
+    This endpoint does NOT execute remediation.
+    Phase 8B.3 execution is handled separately.
     """
 
     auth_error = _api_token_required()
@@ -156,6 +211,29 @@ def update_api_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
 
     data = request.get_json(silent=True) or {}
+
+    # ---------------------------------------------------------
+    # Security boundary - automation cannot approve
+    # ---------------------------------------------------------
+
+    approval_fields = {
+        "approval_status",
+        "approval_reference",
+        "approved_by",
+        "approved_at",
+    }
+
+    attempted_approval_fields = approval_fields.intersection(data.keys())
+
+    if attempted_approval_fields:
+        return jsonify({
+            "error": "Automation bearer token cannot modify approval fields.",
+            "blocked_fields": sorted(attempted_approval_fields),
+        }), 403
+
+    # ---------------------------------------------------------
+    # Basic incident fields
+    # ---------------------------------------------------------
 
     if "status" in data:
         status = data["status"]
@@ -187,6 +265,51 @@ def update_api_incident(incident_id):
             str(data["recommended_action"]).strip() or None
         )
 
+    # ---------------------------------------------------------
+    # Phase 8B.2 - Remediation decision
+    # ---------------------------------------------------------
+
+    if "remediation_change_type" in data:
+        change_type = str(
+            data["remediation_change_type"]
+        ).strip()
+
+        if change_type not in REMEDIATION_CHANGE_TYPES:
+            return jsonify({
+                "error": (
+                    f"Invalid remediation_change_type: "
+                    f"{change_type}"
+                )
+            }), 400
+
+        incident.remediation_change_type = change_type
+
+    if "remediation_action" in data:
+        incident.remediation_action = (
+            str(data["remediation_action"]).strip() or None
+        )
+
+    if "remediation_target" in data:
+        incident.remediation_target = (
+            str(data["remediation_target"]).strip() or None
+        )
+
+    if "remediation_preconditions" in data:
+        incident.remediation_preconditions = (
+            str(data["remediation_preconditions"]).strip() or None
+        )
+
+    if "remediation_dependencies" in data:
+        incident.remediation_dependencies = (
+            str(data["remediation_dependencies"]).strip() or None
+        )
+
+    if "remediation_safety_checks" in data:
+        incident.remediation_safety_checks = (
+            str(data["remediation_safety_checks"]).strip() or None
+        )
+
+    
     db.session.commit()
 
     return jsonify({
@@ -195,6 +318,21 @@ def update_api_incident(incident_id):
         "incident_number": incident.incident_number,
         "status": incident.status,
         "severity": incident.severity,
+
+        # Phase 8B.2
+        "remediation_change_type": incident.remediation_change_type,
+        "remediation_action": incident.remediation_action,
+        "remediation_target": incident.remediation_target,
+
+        # Phase 8B.2 approval
+        "approval_status": incident.approval_status,
+        "approval_reference": incident.approval_reference,
+        "approved_by": incident.approved_by,
+        "approved_at": (
+            incident.approved_at.isoformat()
+            if incident.approved_at
+            else None
+        ),
     }), 200
 
 @icm_bp.route("/")
