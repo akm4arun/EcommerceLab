@@ -58,11 +58,8 @@ def products_by_category(category):
     sort = request.args.get('sort', 'name_asc')
     page = request.args.get('page', 1, type=int)
 
-    # TEMPORARY PHASE 8A FAILURE TEST
+    # Use the requested category for the query
     test_category = category
-
-    if category == "electronics":
-        test_category = "__phase8a_test_invalid__"
 
     pagination = get_all_products(
         search=search,
